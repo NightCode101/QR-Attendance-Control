@@ -8,7 +8,7 @@
   <a href="https://github.com/NightCode101/QR_Attendance_Control/releases/latest">
     <img src="https://img.shields.io/badge/Download-APK-blue.svg" alt="Download APK">
   </a>
-  <a href="#"><img src="https://img.shields.io/badge/status-stable-brightgreen.svg" alt="App Status"></a>
+  <a href="https://github.com/NightCode101/QR_Attendance_Control/releases/latest"><img src="https://img.shields.io/badge/status-stable-brightgreen.svg" alt="App Status"></a>
   <a href="#"><img src="https://img.shields.io/badge/platform-Android-blue.svg" alt="Platform"></a>
   <a href="mailto:baoitjerialle01@gmail.com"><img src="https://img.shields.io/badge/contact-email-orange.svg" alt="Contact"></a>
 </p>
