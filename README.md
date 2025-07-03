@@ -40,8 +40,6 @@ Click the button below to download the latest APK:
 
 👉 [**Download APK from Releases**](https://github.com/NightCode101/QR_Attendance_Control/releases/latest)
 
-> ⚠ Replace the link with your actual GitHub repo if you plan to publish it.
-
 ## 🖼 Screenshots
 
 | Main Menu | Attendance History |
