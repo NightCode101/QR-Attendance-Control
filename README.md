@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="banner.png" alt="CICS QR Attendance Control Banner" />
+</p>
+
 <h1 align="center">CICS QR Attendance Control</h1>
 
 <p align="center">
@@ -8,47 +12,79 @@
   <a href="https://github.com/NightCode101/QR_Attendance_Control/releases/latest">
     <img src="https://img.shields.io/badge/Download-APK-blue.svg" alt="Download APK">
   </a>
-  <a href="https://github.com/NightCode101/QR_Attendance_Control/releases/latest"><img src="https://img.shields.io/badge/status-stable-brightgreen.svg" alt="App Status"></a>
-  <a href="#"><img src="https://img.shields.io/badge/platform-Android-blue.svg" alt="Platform"></a>
-  <a href="mailto:baoitjerialle01@gmail.com"><img src="https://img.shields.io/badge/contact-email-orange.svg" alt="Contact"></a>
+  <a href="https://github.com/NightCode101/QR_Attendance_Control/releases/latest">
+    <img src="https://img.shields.io/badge/status-stable-brightgreen.svg" alt="App Status">
+  </a>
+  <a href="#">
+    <img src="https://img.shields.io/badge/platform-Android-blue.svg" alt="Platform">
+  </a>
+  <a href="mailto:baoitjerialle01@gmail.com">
+    <img src="https://img.shields.io/badge/contact-email-orange.svg" alt="Contact">
+  </a>
 </p>
 
 ---
 
 ## 📱 Features
 
-- ✅ **Offline attendance tracking**
-- 📸 **QR code-based check-in/out**
-- ⏱ **Time-in and time-out functionality**
-- 🗃 **Local database (SQLite)**
-- 📤 **Export attendance to CSV**
-- 🧹 **Clear all attendance records**
-- 🎨 **Custom UI with light theme and branding colors**
-- 🔐 No internet required — fully works offline!
+### 🔐 Admin Panel
+- Secure Firebase email/password login
+- Multiple admin support via UID checking
+- "Remember Me" login toggle
+- Access-controlled AdminActivity
 
-## 🧰 Technologies Used
+### 🧑‍💼 Attendance Management
+- QR code scanner for student check-in/out
+- Time-in and time-out detection logic
+- View and search records by section
+- Long-press delete with undo option
+- Firebase Firestore sync (admin only)
 
-- **Java**
-- **Android Studio**
-- **SQLite**
-- **Storage Access Framework**
-- **ZXing QR scanner (external intent)**
+### 💾 Storage and Export
+- Offline-first: all records saved in local SQLite
+- Scoped Storage-based CSV export per section
+- Automatic file naming with section and date
+
+### 🖌 UI/UX
+- Alphabetically sorted section buttons
+- Color indicators for selected/unselected buttons
+- Custom light theme and branding palette
+- Material UI components and spacing
+
+---
+
+## 🧰 Built With
+
+- **Java** (Android SDK)
+- **SQLite** (Local Database)
+- **Firebase Auth & Firestore** (Admin & Sync)
+- **ZXing** (QR Scanner via external intent)
+- **Storage Access Framework** (File export)
+
+---
 
 ## 📦 APK Download
 
-Click the button below to download the latest APK:
+Click below to grab the latest version:
 
 👉 [**Download APK from Releases**](https://github.com/NightCode101/QR_Attendance_Control/releases/latest)
+
+---
 
 ## 🖼 Screenshots
 
 | Main Menu | Attendance History |
 |-----------|--------------------|
-| ![Main Menu](UI_Main_Menu.jpg) | ![History](UI_Attendance_History.jpg) |
+| ![Main Menu](UI_Main.jpg) | ![History](UI_Attendance_List.jpg) |
+| Login Menu | Admin Panel |
+|-----------|--------------------|
+| ![Main Menu](UI_Login.jpg) | ![History](UI_Admin_Panel.jpg) |
+
+---
 
 ## 📧 Contact
 
-For questions, issues, or contributions:
+For bugs, questions, or feedback:
 
 **Jeylo Baoit**  
 📬 [baoitjerialle01@gmail.com](mailto:baoitjerialle01@gmail.com)  
@@ -58,12 +94,12 @@ For questions, issues, or contributions:
 
 ## 📝 License
 
-This project is created for educational and academic use.  
-Not intended for commercial deployment unless modified with consent.
+This project is intended for academic and educational use.  
+Please ask permission if you plan to use this in commercial or institutional settings.
 
 ---
 
 ## 🙌 Contributions
 
-Feel free to fork and improve. PRs are welcome!
-
+Pull requests and suggestions are welcome.  
+Help improve the system by opening an issue or forking the project.
