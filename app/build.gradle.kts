@@ -1,15 +1,16 @@
 plugins {
     alias(libs.plugins.android.application)
+    id("com.google.gms.google-services")
 }
 
 android {
     namespace = "cics.csup.qrattendancecontrol"
-    compileSdk = 36
+    compileSdk = 34 // ✅ SDK 36 is preview; use 34 for now unless you're testing preview features
 
     defaultConfig {
         applicationId = "cics.csup.qrattendancecontrol"
         minSdk = 29
-        targetSdk = 36
+        targetSdk = 34
         versionCode = 1
         versionName = "1.0"
 
@@ -25,23 +26,41 @@ android {
             )
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+
     buildFeatures {
         viewBinding = true
     }
 }
 
 dependencies {
-
+    // QR Scanner
     implementation("com.journeyapps:zxing-android-embedded:4.3.0")
+
+    // Firebase Core
+    implementation("com.google.firebase:firebase-analytics:21.6.1")
+
+    // Firestore
+    implementation("com.google.firebase:firebase-firestore:24.4.5")
+
+    // Firebase Auth
+    implementation("com.google.firebase:firebase-auth:22.3.1")
+
+    // Firebase BoM
+    implementation(platform("com.google.firebase:firebase-bom:33.16.0"))
+
+    // AndroidX + UI
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.constraintlayout)
     implementation(libs.navigation.fragment)
     implementation(libs.navigation.ui)
+
+    // Testing
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)

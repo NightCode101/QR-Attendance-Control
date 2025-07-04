@@ -5,17 +5,17 @@
     <color name="card_background">#ffffff</color>
 
     <!-- Accent/primary palette -->
-    <color name="primary_accent">#e59e02</color> <!-- Rich orange -->
-    <color name="secondary_accent">#fd7f09</color> <!-- Stronger orange -->
+    <color name="primary_accent">#e59e02</color>
+    <color name="secondary_accent">#fd7f09</color>
 
     <!-- Button & interactive elements -->
-    <color name="button_scan">#fd7f09</color>       <!-- Bold scan button -->
-    <color name="button_history">#e59e02</color>    <!-- Lighter history button -->
-    <color name="button_neutral">#d7ccc8</color>    <!-- Optional neutral tone -->
+    <color name="button_scan">#fd7f09</color>
+    <color name="button_history">#e59e02</color>
+    <color name="button_neutral">#d7ccc8</color>
 
     <!-- Text colors -->
-    <color name="text_primary">#212121</color>       <!-- Near-black -->
-    <color name="text_secondary">#5d5d5d</color>     <!-- Soft gray -->
+    <color name="text_primary">#212121</color>
+    <color name="text_secondary">#5d5d5d</color>
     <color name="text_black">#000000</color>
     <color name="white">#FFFFFF</color>
     <color name="black">#FF000000</color>

@@ -2,7 +2,11 @@ package cics.csup.qrattendancecontrol;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
@@ -17,11 +21,15 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
@@ -38,11 +46,25 @@ public class MainActivity extends AppCompatActivity {
     private static final String PREFS_NAME = "AttendancePrefs";
     private static final String KEY_SECTION = "last_section";
 
+    private FirebaseFirestore firestore;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        FirebaseApp.initializeApp(this);
+        firestore = FirebaseFirestore.getInstance();
+
+        View customToastView = LayoutInflater.from(this).inflate(R.layout.custom_toast, null);
+        int offsetY = (int) (100 * getResources().getDisplayMetrics().density);
+        Toast customToast = new Toast(getApplicationContext());
+        customToast.setView(customToastView);
+        customToast.setDuration(Toast.LENGTH_SHORT);
+        customToast.setGravity(Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL, 0, offsetY);
+        customToast.show();
+
         applyWindowInsetPadding();
 
         modeRadioGroup = findViewById(R.id.modeRadioGroup);
@@ -55,6 +77,7 @@ public class MainActivity extends AppCompatActivity {
         timeText = findViewById(R.id.timeText);
         dateText = findViewById(R.id.dateText);
         sectionEditText = findViewById(R.id.sectionEditText);
+        Button adminButton = findViewById(R.id.adminButton);
 
         db = new AttendanceDBHelper(this);
         sharedPreferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
@@ -64,6 +87,12 @@ public class MainActivity extends AppCompatActivity {
 
         historyButton.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, HistoryActivity.class);
+            startActivity(intent);
+        });
+
+        adminButton.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+            intent.putExtra("target", "admin"); // tell LoginActivity it's for admin access
             startActivity(intent);
         });
 
@@ -91,6 +120,8 @@ public class MainActivity extends AppCompatActivity {
             integrator.setCaptureActivity(QRScanActivity.class);
             integrator.initiateScan();
         });
+
+        syncUnsyncedDataToFirebase();
     }
 
     @Override
@@ -99,9 +130,11 @@ public class MainActivity extends AppCompatActivity {
         IntentResult result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
 
         if (result != null && result.getContents() != null) {
-            String qrContent = result.getContents().trim(); // Only name, no section
+            String qrContent = result.getContents().trim();
             String mode = radioTimeIn.isChecked() ? "in" : "out";
-            String status = db.markAttendance(qrContent, mode); // Save only name
+            String section = sectionEditText.getText().toString().trim();
+
+            String status = db.markAttendance(qrContent, mode, section);
 
             String currentTime = new SimpleDateFormat("hh:mm a", Locale.getDefault()).format(new Date());
             String currentDate = new SimpleDateFormat("MMMM d, yyyy", Locale.getDefault()).format(new Date());
@@ -112,6 +145,8 @@ public class MainActivity extends AppCompatActivity {
             dateText.setText("Date: " + currentDate);
 
             Toast.makeText(this, status, Toast.LENGTH_SHORT).show();
+
+            syncUnsyncedDataToFirebase();
         }
     }
 
@@ -130,5 +165,46 @@ public class MainActivity extends AppCompatActivity {
             view.setPadding(0, topInset, 0, bottomInset);
             return insets;
         });
+    }
+
+    // ✅ Prevents duplicate Firestore records
+    private void syncUnsyncedDataToFirebase() {
+        if (!isOnline()) return;
+
+        List<AttendanceRecord> unsynced = db.getUnsyncedRecords();
+
+        for (AttendanceRecord record : unsynced) {
+            firestore.collection("attendance_records")
+                    .whereEqualTo("name", record.getName())
+                    .whereEqualTo("date", record.getDate())
+                    .whereEqualTo("section", record.getSection())
+                    .get()
+                    .addOnSuccessListener(query -> {
+                        if (!query.isEmpty()) {
+                            // Document exists — update it
+                            for (QueryDocumentSnapshot doc : query) {
+                                firestore.collection("attendance_records")
+                                        .document(doc.getId())
+                                        .update(record.toMap())
+                                        .addOnSuccessListener(unused -> db.markAsSynced(record.getId()));
+                                break;
+                            }
+                        } else {
+                            // Document does not exist — add new
+                            firestore.collection("attendance_records")
+                                    .add(record.toMap())
+                                    .addOnSuccessListener(unused -> db.markAsSynced(record.getId()));
+                        }
+                    });
+        }
+    }
+
+    private boolean isOnline() {
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
+        if (cm != null) {
+            NetworkInfo netInfo = cm.getActiveNetworkInfo();
+            return netInfo != null && netInfo.isConnected();
+        }
+        return false;
     }
 }

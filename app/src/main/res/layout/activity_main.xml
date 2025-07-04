@@ -24,7 +24,6 @@
         app:layout_constraintEnd_toEndOf="parent"/>
         <!-- android:layout_marginTop="16dp" -->
 
-
     <!-- Scrollable Content -->
     <androidx.core.widget.NestedScrollView
         android:id="@+id/scrollContent"
@@ -122,6 +121,15 @@
                     android:backgroundTint="@color/primary_accent"
                     android:inputType="text" />
             </LinearLayout>
+
+            <Button
+                android:id="@+id/adminButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp"
+                android:backgroundTint="@color/button_history"
+                android:text="Admin Panel"
+                android:textColor="@color/white" />
 
             <!-- History Button -->
             <Button

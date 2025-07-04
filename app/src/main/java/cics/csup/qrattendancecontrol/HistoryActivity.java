@@ -7,7 +7,6 @@ import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.Gravity;
-import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -102,13 +101,12 @@ public class HistoryActivity extends AppCompatActivity {
         }
 
         for (AttendanceRecord record : currentRecords) {
-            // Show only the name (not section)
             TextView row = new TextView(this);
             row.setText(getString(R.string.record_format,
-                    record.name,
-                    record.date,
-                    record.timeIn,
-                    record.timeOut != null ? record.timeOut : "-"));
+                    record.getName(),
+                    record.getDate(),
+                    record.getTimeIn(),
+                    record.getTimeOut() != null ? record.getTimeOut() : "-"));
 
             row.setTextSize(16);
             row.setTypeface(Typeface.MONOSPACE);
@@ -120,7 +118,7 @@ public class HistoryActivity extends AppCompatActivity {
                         .setTitle(getString(R.string.delete_entry_title))
                         .setMessage(getString(R.string.confirm_delete_entry))
                         .setPositiveButton(getString(R.string.delete), (dialog, which) -> {
-                            dbHelper.deleteAttendanceById(record.id);
+                            dbHelper.deleteAttendanceById(record.getId());
                             loadHistory();
                             Toast.makeText(this, getString(R.string.entry_deleted), Toast.LENGTH_SHORT).show();
                         })
@@ -157,10 +155,10 @@ public class HistoryActivity extends AppCompatActivity {
         data.append("Name,Date,Time In,Time Out\n");
 
         for (AttendanceRecord record : currentRecords) {
-            data.append("\"").append(record.name).append("\",")
-                    .append("\"").append(record.date).append("\",")
-                    .append("\"").append(record.timeIn).append("\",")
-                    .append("\"").append(record.timeOut != null ? record.timeOut : "-").append("\"\n");
+            data.append("\"").append(record.getName()).append("\",")
+                    .append("\"").append(record.getDate()).append("\",")
+                    .append("\"").append(record.getTimeIn()).append("\",")
+                    .append("\"").append(record.getTimeOut() != null ? record.getTimeOut() : "-").append("\"\n");
         }
 
         try (OutputStream outputStream = getContentResolver().openOutputStream(uri);
