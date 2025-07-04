@@ -77,7 +77,6 @@ Click below to grab the latest version:
 |-----------|--------------------|
 | ![Main Menu](UI_Main.jpg) | ![History](UI_Attendance_List.jpg) |
 | Login Menu | Admin Panel |
-|-----------|--------------------|
 | ![Main Menu](UI_Login.jpg) | ![History](UI_Admin_Panel.jpg) |
 
 ---
