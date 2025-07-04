@@ -4,6 +4,12 @@ plugins {
 }
 
 android {
+    signingConfigs {
+        getByName("debug") {
+            storeFile = file("C:\\QR_Attendance_Control\\keystore\\release-key.jks")
+            storePassword = "Baoit@0601"
+        }
+    }
     namespace = "cics.csup.qrattendancecontrol"
     compileSdk = 34 // ✅ SDK 36 is preview; use 34 for now unless you're testing preview features
 
@@ -11,8 +17,8 @@ android {
         applicationId = "cics.csup.qrattendancecontrol"
         minSdk = 29
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "2.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
