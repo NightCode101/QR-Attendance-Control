@@ -18,6 +18,7 @@ import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
@@ -44,6 +45,7 @@ public class AdminActivity extends AppCompatActivity {
     private LinearLayout adminAttendanceContainer;
     private EditText searchNameEditText;
     private Button exportCsvButton;
+    private SwipeRefreshLayout swipeRefreshLayout;
     private String currentSection = null;
 
     private final ActivityResultLauncher<Intent> createFileLauncher =
@@ -66,16 +68,15 @@ public class AdminActivity extends AppCompatActivity {
 
         if (user == null || !user.getUid().equals(ADMIN_UID)) {
             Toast.makeText(this, "Access denied. Not an admin.", Toast.LENGTH_SHORT).show();
-            finish(); // Close the activity
+            finish();
             return;
         }
-
-        setContentView(R.layout.activity_admin);
 
         sectionButtonContainer = findViewById(R.id.sectionButtonContainer);
         adminAttendanceContainer = findViewById(R.id.adminDataContainer);
         searchNameEditText = findViewById(R.id.searchNameEditText);
         exportCsvButton = findViewById(R.id.exportCsvButton);
+        swipeRefreshLayout = findViewById(R.id.adminSwipeRefreshLayout);
         firestore = FirebaseFirestore.getInstance();
 
         searchNameEditText.addTextChangedListener(new TextWatcher() {
@@ -91,6 +92,10 @@ public class AdminActivity extends AppCompatActivity {
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 if (currentSection != null) showRecordsForSection(currentSection);
             }
+        });
+
+        swipeRefreshLayout.setOnRefreshListener(() -> {
+            loadAllRecords();
         });
 
         exportCsvButton.setOnClickListener(v -> createCSVFile());
@@ -126,18 +131,19 @@ public class AdminActivity extends AppCompatActivity {
                         }
                     }
 
+                    swipeRefreshLayout.setRefreshing(false);
                     renderSectionButtons();
                 })
-                .addOnFailureListener(e ->
-                        Toast.makeText(this, "Failed to load attendance records.", Toast.LENGTH_SHORT).show()
-                );
+                .addOnFailureListener(e -> {
+                    swipeRefreshLayout.setRefreshing(false);
+                    Toast.makeText(this, "Failed to load attendance records.", Toast.LENGTH_SHORT).show();
+                });
     }
 
     private void renderSectionButtons() {
         sectionButtonContainer.removeAllViews();
-
         List<String> sortedSections = new ArrayList<>(sectionSet);
-        java.util.Collections.sort(sortedSections);  // Sort alphabetically
+        java.util.Collections.sort(sortedSections);
 
         for (String section : sortedSections) {
             Button btn = new Button(this);
@@ -145,13 +151,10 @@ public class AdminActivity extends AppCompatActivity {
             btn.setAllCaps(false);
             btn.setTextColor(getColor(R.color.white));
             btn.setPadding(32, 20, 32, 20);
-
-            // Highlight if this is the currently selected section
-            if (section.equals(currentSection)) {
-                btn.setBackgroundTintList(ColorStateList.valueOf(getColor(R.color.secondary_accent)));
-            } else {
-                btn.setBackgroundTintList(ColorStateList.valueOf(getColor(R.color.primary_accent)));
-            }
+            btn.setBackgroundTintList(ColorStateList.valueOf(
+                    section.equals(currentSection)
+                            ? getColor(R.color.secondary_accent)
+                            : getColor(R.color.primary_accent)));
 
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.WRAP_CONTENT,
@@ -162,21 +165,19 @@ public class AdminActivity extends AppCompatActivity {
 
             btn.setOnClickListener(v -> {
                 currentSection = section;
-                renderSectionButtons(); // Refresh button styles
+                renderSectionButtons();
                 showRecordsForSection(section);
             });
 
             sectionButtonContainer.addView(btn);
         }
 
-        // Default to first section if none is selected
         if (!sortedSections.isEmpty() && currentSection == null) {
             currentSection = sortedSections.get(0);
             renderSectionButtons();
             showRecordsForSection(currentSection);
         }
     }
-
 
     private void showRecordsForSection(String section) {
         adminAttendanceContainer.removeAllViews();

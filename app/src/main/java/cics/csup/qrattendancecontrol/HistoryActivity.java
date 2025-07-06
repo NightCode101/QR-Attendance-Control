@@ -15,10 +15,13 @@ import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.FileProvider;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.text.SimpleDateFormat;
@@ -65,23 +68,22 @@ public class HistoryActivity extends AppCompatActivity {
             }
 
             new AlertDialog.Builder(this)
-                    .setTitle(getString(R.string.clear_history_title))
-                    .setMessage(getString(R.string.confirm_clear_history))
-                    .setPositiveButton(getString(R.string.yes), (dialog, which) -> {
+                    .setTitle("Clear History")
+                    .setMessage("Are you sure you want to clear all records?")
+                    .setPositiveButton("Yes", (dialog, which) -> {
                         dbHelper.clearAllAttendance();
                         loadHistory();
-                        Toast.makeText(this, getString(R.string.history_cleared), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, "Attendance history cleared.", Toast.LENGTH_SHORT).show();
                     })
-                    .setNegativeButton(getString(R.string.no), null)
+                    .setNegativeButton("No", null)
                     .show();
         });
 
-        exportCSVButton.setText(getString(R.string.export_to_csv));
         exportCSVButton.setOnClickListener(v -> {
             if (currentRecords == null || currentRecords.isEmpty()) {
-                Toast.makeText(this, getString(R.string.no_data_export), Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "No attendance data to export.", Toast.LENGTH_SHORT).show();
             } else {
-                createCSVFile();
+                showExportOptions();
             }
         });
     }
@@ -92,7 +94,7 @@ public class HistoryActivity extends AppCompatActivity {
 
         if (currentRecords.isEmpty()) {
             TextView empty = new TextView(this);
-            empty.setText(getString(R.string.no_attendance_found));
+            empty.setText("No attendance records found.");
             empty.setGravity(Gravity.CENTER);
             empty.setTextSize(16);
             empty.setPadding(16, 32, 16, 32);
@@ -102,7 +104,8 @@ public class HistoryActivity extends AppCompatActivity {
 
         for (AttendanceRecord record : currentRecords) {
             TextView row = new TextView(this);
-            row.setText(getString(R.string.record_format,
+            row.setText(String.format(Locale.getDefault(),
+                    "%s\nDate: %s\nTime In: %s\nTime Out: %s",
                     record.getName(),
                     record.getDate(),
                     record.getTimeIn(),
@@ -115,14 +118,14 @@ public class HistoryActivity extends AppCompatActivity {
 
             row.setOnLongClickListener(v -> {
                 new AlertDialog.Builder(this)
-                        .setTitle(getString(R.string.delete_entry_title))
-                        .setMessage(getString(R.string.confirm_delete_entry))
-                        .setPositiveButton(getString(R.string.delete), (dialog, which) -> {
+                        .setTitle("Delete Entry")
+                        .setMessage("Are you sure you want to delete this record?")
+                        .setPositiveButton("Delete", (dialog, which) -> {
                             dbHelper.deleteAttendanceById(record.getId());
                             loadHistory();
-                            Toast.makeText(this, getString(R.string.entry_deleted), Toast.LENGTH_SHORT).show();
+                            Toast.makeText(this, "Entry deleted.", Toast.LENGTH_SHORT).show();
                         })
-                        .setNegativeButton(getString(R.string.cancel), null)
+                        .setNegativeButton("Cancel", null)
                         .show();
                 return true;
             });
@@ -131,10 +134,23 @@ public class HistoryActivity extends AppCompatActivity {
         }
     }
 
+    private void showExportOptions() {
+        String[] options = {"Save to Files", "Share via Other Apps"};
+        new AlertDialog.Builder(this)
+                .setTitle("Export Options")
+                .setItems(options, (dialog, which) -> {
+                    if (which == 0) {
+                        createCSVFile();
+                    } else {
+                        shareCSVDirectly();
+                    }
+                })
+                .show();
+    }
+
     private void createCSVFile() {
         String section = getSharedPreferences("AttendancePrefs", MODE_PRIVATE)
                 .getString("last_section", "Section");
-
         String safeSection = section.replaceAll("[^a-zA-Z0-9]", "_");
         String currentDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
         String fileName = "BSIT_" + safeSection + "_" + currentDate + ".csv";
@@ -146,11 +162,6 @@ public class HistoryActivity extends AppCompatActivity {
     }
 
     private void writeCSVToUri(Uri uri) {
-        if (currentRecords == null || currentRecords.isEmpty()) {
-            Toast.makeText(this, getString(R.string.no_data_export), Toast.LENGTH_SHORT).show();
-            return;
-        }
-
         StringBuilder data = new StringBuilder();
         data.append("Name,Date,Time In,Time Out\n");
 
@@ -166,12 +177,55 @@ public class HistoryActivity extends AppCompatActivity {
 
             writer.write(data.toString());
             writer.flush();
-            Toast.makeText(this, getString(R.string.export_success, uri.getPath()), Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Exported successfully.", Toast.LENGTH_LONG).show();
         } catch (Exception e) {
-            Toast.makeText(this, getString(R.string.export_failed, e.getMessage()), Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Export failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
             e.printStackTrace();
         }
     }
+
+    private void shareCSVDirectly() {
+        try {
+            // Generate matching filename
+            String section = getSharedPreferences("AttendancePrefs", MODE_PRIVATE)
+                    .getString("last_section", "Section");
+            String safeSection = section.replaceAll("[^a-zA-Z0-9]", "_");
+            String currentDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
+            String fileName = "BSIT_" + safeSection + "_" + currentDate + ".csv";
+
+            // Create file in cache directory with that name
+            File cacheFile = new File(getCacheDir(), fileName);
+            try (FileOutputStream fos = new FileOutputStream(cacheFile);
+                 OutputStreamWriter writer = new OutputStreamWriter(fos)) {
+
+                writer.write("Name,Date,Time In,Time Out\n");
+                for (AttendanceRecord record : currentRecords) {
+                    writer.write(String.format("\"%s\",\"%s\",\"%s\",\"%s\"\n",
+                            record.getName(),
+                            record.getDate(),
+                            record.getTimeIn(),
+                            record.getTimeOut() != null ? record.getTimeOut() : "-"));
+                }
+                writer.flush();
+            }
+
+            // Share the CSV file via other apps
+            Uri uri = FileProvider.getUriForFile(this,
+                    getApplicationContext().getPackageName() + ".fileprovider", cacheFile);
+
+            Intent shareIntent = new Intent(Intent.ACTION_SEND);
+            shareIntent.setType("text/csv");
+            shareIntent.putExtra(Intent.EXTRA_STREAM, uri);
+            shareIntent.putExtra(Intent.EXTRA_TITLE, fileName);
+            shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            startActivity(Intent.createChooser(shareIntent, "Share CSV via"));
+
+        } catch (Exception e) {
+            Toast.makeText(this, "Failed to share: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            e.printStackTrace();
+        }
+    }
+
 
     private void applyWindowInsetPadding() {
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content), (view, insets) -> {

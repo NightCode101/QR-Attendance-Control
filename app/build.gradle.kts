@@ -5,14 +5,14 @@ plugins {
 
 android {
     namespace = "cics.csup.qrattendancecontrol"
-    compileSdk = 34 // ✅ SDK 36 is preview; use 34 for now unless you're testing preview features
+    compileSdk = 34 //
 
     defaultConfig {
         applicationId = "cics.csup.qrattendancecontrol"
         minSdk = 29
         targetSdk = 34
         versionCode = 2
-        versionName = "2.0"
+        versionName = "2.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -64,4 +64,6 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
+
+    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
 }
