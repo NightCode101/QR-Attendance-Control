@@ -10,8 +10,8 @@
         android:id="@+id/custom_toast_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="💗 Created by: Jeylo Baoit"
-        android:textColor="#FFFFFF"
+        android:text="@string/created_by"
+        android:textColor="@color/white"
         android:textSize="16sp"
         android:textStyle="bold" />
 </LinearLayout>
