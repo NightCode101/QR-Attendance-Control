@@ -12,9 +12,6 @@
   <a href="https://github.com/NightCode101/QR_Attendance_Control/releases/latest">
     <img src="https://img.shields.io/badge/Download-APK-blue.svg" alt="Download APK">
   </a>
-  <a href="https://github.com/NightCode101/QR_Attendance_Control/releases/latest">
-    <img src="https://img.shields.io/badge/status-stable-brightgreen.svg" alt="App Status">
-  </a>
   <a href="#">
     <img src="https://img.shields.io/badge/platform-Android-blue.svg" alt="Platform">
   </a>
@@ -22,6 +19,43 @@
     <img src="https://img.shields.io/badge/contact-email-orange.svg" alt="Contact">
   </a>
 </p>
+
+---
+
+## ✨ Core Features
+
+- 📷 **QR Code Scanner**  
+  Scan student-generated QR codes to record attendance instantly.
+
+- 🕒 **Time-In / Time-Out Logic**  
+  Smart system to differentiate first scan (Time-In) and second scan (Time-Out) per person per day.
+
+- 📅 **Date & Time Display**  
+  Shows the current time and date in 12-hour format with AM/PM.
+
+- 📁 **Offline Mode (SQLite)**  
+  All records are stored locally and work without internet access.
+
+- ☁️ **Firebase Sync (Admin Only)**  
+  Syncs attendance data to Firestore when online.
+
+- 📤 **Export CSV via Share or File Picker**  
+  Export selected attendance as a clean CSV file. You can share it instantly through apps like Gmail or Messenger, or save it using Android's file picker (SAF).
+
+- 📋 **Attendance History View**  
+  Displays all scans with clear formatting and spacing.
+
+- 🔐 **Admin Login via Firebase Auth**  
+  Only authorized users can access the admin panel using email/password login.
+
+- 🧠 **"Remember Me" Login Option**  
+  Saves email and password locally for faster future login.
+
+- 🗑️ **Long Press to Delete**  
+  Admins can long-press on a record to delete it from both local UI and Firestore, with an undo option.
+
+- 🎨 **Custom UI Theme**  
+  Smooth, clean interface using your own color palette and Material components.
 
 ---
 
