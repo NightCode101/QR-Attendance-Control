@@ -2,8 +2,10 @@ package cics.csup.qrattendancecontrol;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -33,6 +35,13 @@ public class LoginActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) { // Use your app's valid theme here
+        getWindow().setNavigationBarColor(Color.parseColor("#121212"));
+        getWindow().setStatusBarColor(Color.parseColor("#121212"));
+
+        // Make status bar and nav bar icons light (only works on Android 6.0+)
+        View decor = getWindow().getDecorView();
+        decor.setSystemUiVisibility(0); // Clears flags like LIGHT_STATUS_BAR
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 

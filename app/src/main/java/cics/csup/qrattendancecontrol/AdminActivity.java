@@ -3,12 +3,14 @@ package cics.csup.qrattendancecontrol;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.res.ColorStateList;
+import android.graphics.Color;
 import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.Gravity;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -30,6 +32,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -60,6 +63,13 @@ public class AdminActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        getWindow().setNavigationBarColor(Color.parseColor("#121212"));
+        getWindow().setStatusBarColor(Color.parseColor("#121212"));
+
+        // Make status bar and nav bar icons light (only works on Android 6.0+)
+        View decor = getWindow().getDecorView();
+        decor.setSystemUiVisibility(0); // Clears flags like LIGHT_STATUS_BAR
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_admin);
 
@@ -94,10 +104,7 @@ public class AdminActivity extends AppCompatActivity {
             }
         });
 
-        swipeRefreshLayout.setOnRefreshListener(() -> {
-            loadAllRecords();
-        });
-
+        swipeRefreshLayout.setOnRefreshListener(this::loadAllRecords);
         exportCsvButton.setOnClickListener(v -> createCSVFile());
 
         loadAllRecords();
@@ -113,19 +120,26 @@ public class AdminActivity extends AppCompatActivity {
                         String name = doc.getString("name");
                         String section = doc.getString("section");
                         String date = doc.getString("date");
-                        String timeIn = doc.getString("time_in");
-                        String timeOut = doc.getString("time_out");
+                        String timeInAM = doc.getString("time_in_am");
+                        String timeOutAM = doc.getString("time_out_am");
+                        String timeInPM = doc.getString("time_in_pm");
+                        String timeOutPM = doc.getString("time_out_pm");
 
                         if (name != null && section != null && date != null) {
+                            section = section.trim().toUpperCase(); // normalize
+
                             AttendanceRecord record = new AttendanceRecord(
                                     0,
                                     name,
                                     date,
-                                    timeIn != null ? timeIn : "-",
-                                    timeOut != null ? timeOut : "-",
+                                    timeInAM != null ? timeInAM : "-",
+                                    timeOutAM != null ? timeOutAM : "-",
+                                    timeInPM != null ? timeInPM : "-",
+                                    timeOutPM != null ? timeOutPM : "-",
                                     section
                             );
-                            record.setIdHash(doc.getId());
+
+                            String docId = record.getIdHash();
                             allRecords.add(record);
                             sectionSet.add(section);
                         }
@@ -142,10 +156,15 @@ public class AdminActivity extends AppCompatActivity {
 
     private void renderSectionButtons() {
         sectionButtonContainer.removeAllViews();
-        List<String> sortedSections = new ArrayList<>(sectionSet);
-        java.util.Collections.sort(sortedSections);
 
-        for (String section : sortedSections) {
+        List<String> predefinedSections = Arrays.asList(
+                "1A", "1B", "1C", "1D",
+                "2A", "2B", "2C",
+                "3A", "3B", "3C",
+                "4A", "4B", "4C"
+        );
+
+        for (String section : predefinedSections) {
             Button btn = new Button(this);
             btn.setText(section);
             btn.setAllCaps(false);
@@ -165,19 +184,20 @@ public class AdminActivity extends AppCompatActivity {
 
             btn.setOnClickListener(v -> {
                 currentSection = section;
-                renderSectionButtons();
-                showRecordsForSection(section);
+                renderSectionButtons(); // Refresh highlight
+                showRecordsForSection(section); // Display records
             });
 
             sectionButtonContainer.addView(btn);
         }
 
-        if (!sortedSections.isEmpty() && currentSection == null) {
-            currentSection = sortedSections.get(0);
-            renderSectionButtons();
+        if (currentSection == null) {
+            currentSection = predefinedSections.get(0);
+            renderSectionButtons(); // Highlight first by default
             showRecordsForSection(currentSection);
         }
     }
+
 
     private void showRecordsForSection(String section) {
         adminAttendanceContainer.removeAllViews();
@@ -185,7 +205,7 @@ public class AdminActivity extends AppCompatActivity {
 
         List<AttendanceRecord> filtered = new ArrayList<>();
         for (AttendanceRecord record : allRecords) {
-            if (record.getSection().equals(section)) {
+            if (record.getSection().equalsIgnoreCase(section)) {
                 if (query.isEmpty() || record.getName().toLowerCase().contains(query)) {
                     filtered.add(record);
                 }
@@ -213,10 +233,15 @@ public class AdminActivity extends AppCompatActivity {
 
     private void addRecordToUI(AttendanceRecord record) {
         TextView row = new TextView(this);
-        row.setText(record.getName() + "\n"
+
+        String displayText = record.getName() + "\n"
                 + "Date: " + record.getDate() + "\n"
-                + "Time In: " + record.getTimeIn() + "\n"
-                + "Time Out: " + record.getTimeOut());
+                + "Time In (AM): " + record.getTimeInAM() + "\n"
+                + "Time Out (AM): " + record.getTimeOutAM() + "\n"
+                + "Time In (PM): " + record.getTimeInPM() + "\n"
+                + "Time Out (PM): " + record.getTimeOutPM();
+
+        row.setText(displayText);
         row.setTextSize(16);
         row.setTypeface(Typeface.MONOSPACE);
         row.setTextColor(getColor(R.color.text_primary));
@@ -301,15 +326,18 @@ public class AdminActivity extends AppCompatActivity {
         }
 
         StringBuilder data = new StringBuilder();
-        data.append("Name,Date,Time In,Time Out,Section\n");
+        data.append("Name,Date,Time In AM,Time Out AM,Time In PM,Time Out PM,Section\n");
 
         for (AttendanceRecord record : allRecords) {
-            if (record.getSection().equals(currentSection)) {
-                data.append("\"").append(record.getName()).append("\",")
-                        .append("\"").append(record.getDate()).append("\",")
-                        .append("\"").append(record.getTimeIn()).append("\",")
-                        .append("\"").append(record.getTimeOut()).append("\",")
-                        .append("\"").append(record.getSection()).append("\"\n");
+            if (record.getSection().equalsIgnoreCase(currentSection)) {
+                data.append(String.format("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n",
+                        record.getName(),
+                        record.getDate(),
+                        record.getTimeInAM(),
+                        record.getTimeOutAM(),
+                        record.getTimeInPM(),
+                        record.getTimeOutPM(),
+                        record.getSection()));
             }
         }
 

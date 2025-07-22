@@ -6,162 +6,198 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
 public class AttendanceDBHelper extends SQLiteOpenHelper {
 
-    private static final String DB_NAME = "attendance.db";
-    private static final int DB_VERSION = 2;
+    private static final String DATABASE_NAME = "attendance.db";
+    private static final int DATABASE_VERSION = 2;
+
     private static final String TABLE_NAME = "attendance";
 
     public AttendanceDBHelper(Context context) {
-        super(context, DB_NAME, null, DB_VERSION);
+        super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL("CREATE TABLE " + TABLE_NAME + " (" +
-                "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                "student_id TEXT, " +
-                "date TEXT, " +
-                "time_in TEXT, " +
-                "time_out TEXT, " +
-                "section TEXT, " +
-                "is_synced INTEGER DEFAULT 0)");
+        String createTable = "CREATE TABLE " + TABLE_NAME + " (" +
+                "id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                "name TEXT," +
+                "date TEXT," +
+                "section TEXT," +
+                "time_in_am TEXT," +
+                "time_out_am TEXT," +
+                "time_in_pm TEXT," +
+                "time_out_pm TEXT," +
+                "synced INTEGER DEFAULT 0" +
+                ")";
+        db.execSQL(createTable);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        if (oldVersion < 2) {
-            db.execSQL("ALTER TABLE " + TABLE_NAME + " ADD COLUMN section TEXT");
-            db.execSQL("ALTER TABLE " + TABLE_NAME + " ADD COLUMN is_synced INTEGER DEFAULT 0");
-        }
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_NAME);
+        onCreate(db);
     }
 
-    public String markAttendance(String studentName, String mode, String section) {
+    // ✅ Insert or update attendance
+    public void markDetailedAttendance(String name, String date, String section, String field, String timeValue) {
         SQLiteDatabase db = this.getWritableDatabase();
 
-        String currentDate = new SimpleDateFormat("MMMM d, yyyy", Locale.getDefault()).format(new Date());
-        String now = new SimpleDateFormat("hh:mm a", Locale.getDefault()).format(new Date());
-
-        Cursor cursor = db.rawQuery(
-                "SELECT * FROM " + TABLE_NAME + " WHERE student_id = ? AND date = ?",
-                new String[]{studentName, currentDate}
-        );
+        Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_NAME + " WHERE name=? AND date=? AND section=?",
+                new String[]{name, date, section});
 
         if (cursor.moveToFirst()) {
-            String recordId = cursor.getString(cursor.getColumnIndexOrThrow("id"));
-            String timeOut = cursor.getString(cursor.getColumnIndexOrThrow("time_out"));
+            String outAM = cursor.getString(cursor.getColumnIndexOrThrow("time_out_am"));
+            String outPM = cursor.getString(cursor.getColumnIndexOrThrow("time_out_pm"));
+            String inPM = cursor.getString(cursor.getColumnIndexOrThrow("time_in_pm"));
+            String existingFieldValue = cursor.getString(cursor.getColumnIndexOrThrow(field));
 
-            if ("in".equals(mode)) {
+            // Block overwriting any filled field
+            if (existingFieldValue != null && !existingFieldValue.equals("-")) {
                 cursor.close();
-                return "Duplicate Time-In. Entry ignored.";
-            } else {
-                if (timeOut == null || timeOut.isEmpty()) {
-                    ContentValues values = new ContentValues();
-                    values.put("time_out", now);
-                    values.put("section", section);
-                    values.put("is_synced", 0);
-                    db.update(TABLE_NAME, values, "id = ?", new String[]{recordId});
-                    cursor.close();
-                    return "Time-Out recorded for " + studentName;
-                } else {
-                    cursor.close();
-                    return "Already timed out today.";
-                }
+                db.close();
+                return;
             }
+
+            // Prevent AM actions if PM time_in already exists
+            if ((field.equals("time_in_am") || field.equals("time_out_am")) &&
+                    inPM != null && !inPM.equals("-")) {
+                cursor.close();
+                db.close();
+                return;
+            }
+
+            // Prevent time_in if corresponding time_out is already filled
+            if (field.equals("time_in_am") && outAM != null && !outAM.equals("-")) {
+                cursor.close();
+                db.close();
+                return;
+            }
+
+            if (field.equals("time_in_pm") && outPM != null && !outPM.equals("-")) {
+                cursor.close();
+                db.close();
+                return;
+            }
+
+            // Safe to update
+            String updateSQL = "UPDATE " + TABLE_NAME + " SET " + field + "=?, synced=0 WHERE name=? AND date=? AND section=?";
+            db.execSQL(updateSQL, new Object[]{timeValue, name, date, section});
+
         } else {
+            // Create new record
             ContentValues values = new ContentValues();
-            values.put("student_id", studentName);
-            values.put("date", currentDate);
+            values.put("name", name);
+            values.put("date", date);
             values.put("section", section);
-            values.put("is_synced", 0);
-
-            if ("in".equals(mode)) {
-                values.put("time_in", now);
-                db.insert(TABLE_NAME, null, values);
-                cursor.close();
-                return "Time-In recorded for " + studentName;
-            } else {
-                values.put("time_in", "");
-                values.put("time_out", now);
-                db.insert(TABLE_NAME, null, values);
-                cursor.close();
-                return "⚠ Time-In not found. Time-Out recorded.";
-            }
-        }
-    }
-
-    public List<AttendanceRecord> getAttendanceRecords() {
-        List<AttendanceRecord> list = new ArrayList<>();
-        SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_NAME + " ORDER BY date DESC, time_in DESC", null);
-
-        if (cursor.moveToFirst()) {
-            do {
-                int id = cursor.getInt(cursor.getColumnIndexOrThrow("id"));
-                String name = cursor.getString(cursor.getColumnIndexOrThrow("student_id"));
-                String date = cursor.getString(cursor.getColumnIndexOrThrow("date"));
-                String timeIn = cursor.getString(cursor.getColumnIndexOrThrow("time_in"));
-                String timeOut = cursor.getString(cursor.getColumnIndexOrThrow("time_out"));
-                String section = cursor.getString(cursor.getColumnIndexOrThrow("section"));
-
-                if (timeIn == null || timeIn.isEmpty()) timeIn = "-";
-                if (timeOut == null || timeOut.isEmpty()) timeOut = "-";
-
-                AttendanceRecord record = new AttendanceRecord(id, name, date, timeIn, timeOut, section);
-                list.add(record);
-            } while (cursor.moveToNext());
+            values.put("time_in_am", "-");
+            values.put("time_out_am", "-");
+            values.put("time_in_pm", "-");
+            values.put("time_out_pm", "-");
+            values.put(field, timeValue);
+            values.put("synced", 0);
+            db.insert(TABLE_NAME, null, values);
         }
 
         cursor.close();
-        return list;
+        db.close();
     }
 
-    public List<AttendanceRecord> getUnsyncedRecords() {
-        List<AttendanceRecord> list = new ArrayList<>();
+
+    // ✅ Fetch record for validation
+    public AttendanceRecord getRecordByNameDateSection(String name, String date, String section) {
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_NAME + " WHERE is_synced = 0", null);
+        Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_NAME + " WHERE name=? AND date=? AND section=?",
+                new String[]{name, date, section});
+
+        AttendanceRecord record = null;
 
         if (cursor.moveToFirst()) {
-            do {
-                int id = cursor.getInt(cursor.getColumnIndexOrThrow("id"));
-                String name = cursor.getString(cursor.getColumnIndexOrThrow("student_id"));
-                String date = cursor.getString(cursor.getColumnIndexOrThrow("date"));
-                String timeIn = cursor.getString(cursor.getColumnIndexOrThrow("time_in"));
-                String timeOut = cursor.getString(cursor.getColumnIndexOrThrow("time_out"));
-                String section = cursor.getString(cursor.getColumnIndexOrThrow("section"));
+            int id = cursor.getInt(cursor.getColumnIndexOrThrow("id"));
+            String inAM = cursor.getString(cursor.getColumnIndexOrThrow("time_in_am"));
+            String outAM = cursor.getString(cursor.getColumnIndexOrThrow("time_out_am"));
+            String inPM = cursor.getString(cursor.getColumnIndexOrThrow("time_in_pm"));
+            String outPM = cursor.getString(cursor.getColumnIndexOrThrow("time_out_pm"));
 
-                if (timeIn == null || timeIn.isEmpty()) timeIn = "-";
-                if (timeOut == null || timeOut.isEmpty()) timeOut = "-";
-
-                AttendanceRecord record = new AttendanceRecord(id, name, date, timeIn, timeOut, section);
-                list.add(record);
-            } while (cursor.moveToNext());
+            record = new AttendanceRecord(id, name, date, inAM, outAM, inPM, outPM, section);
         }
 
         cursor.close();
-        return list;
+        db.close();
+        return record;
     }
 
+    // ✅ Mark record as synced
     public void markAsSynced(int id) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
-        values.put("is_synced", 1);
+        values.put("synced", 1);
         db.update(TABLE_NAME, values, "id = ?", new String[]{String.valueOf(id)});
+        db.close();
     }
 
-    public void deleteAttendanceById(int id) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        db.delete(TABLE_NAME, "id = ?", new String[]{String.valueOf(id)});
+    // ✅ Get all unsynced records
+    public List<AttendanceRecord> getUnsyncedRecords() {
+        List<AttendanceRecord> records = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_NAME + " WHERE synced = 0", null);
+
+        if (cursor.moveToFirst()) {
+            do {
+                records.add(extractRecordFromCursor(cursor));
+            } while (cursor.moveToNext());
+        }
+
+        cursor.close();
+        db.close();
+        return records;
     }
 
+    // ✅ Get all records
+    public List<AttendanceRecord> getAttendanceRecords() {
+        List<AttendanceRecord> records = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_NAME + " ORDER BY id DESC", null);
+
+        if (cursor.moveToFirst()) {
+            do {
+                records.add(extractRecordFromCursor(cursor));
+            } while (cursor.moveToNext());
+        }
+
+        cursor.close();
+        db.close();
+        return records;
+    }
+
+    // ✅ Clear all
     public void clearAllAttendance() {
         SQLiteDatabase db = this.getWritableDatabase();
         db.delete(TABLE_NAME, null, null);
+        db.close();
+    }
+
+    // ✅ Delete one by ID
+    public void deleteAttendanceById(int id) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete(TABLE_NAME, "id = ?", new String[]{String.valueOf(id)});
+        db.close();
+    }
+
+    // 🔧 Extract helper
+    private AttendanceRecord extractRecordFromCursor(Cursor cursor) {
+        int id = cursor.getInt(cursor.getColumnIndexOrThrow("id"));
+        String name = cursor.getString(cursor.getColumnIndexOrThrow("name"));
+        String date = cursor.getString(cursor.getColumnIndexOrThrow("date"));
+        String section = cursor.getString(cursor.getColumnIndexOrThrow("section"));
+        String inAM = cursor.getString(cursor.getColumnIndexOrThrow("time_in_am"));
+        String outAM = cursor.getString(cursor.getColumnIndexOrThrow("time_out_am"));
+        String inPM = cursor.getString(cursor.getColumnIndexOrThrow("time_in_pm"));
+        String outPM = cursor.getString(cursor.getColumnIndexOrThrow("time_out_pm"));
+
+        return new AttendanceRecord(id, name, date, inAM, outAM, inPM, outPM, section);
     }
 }

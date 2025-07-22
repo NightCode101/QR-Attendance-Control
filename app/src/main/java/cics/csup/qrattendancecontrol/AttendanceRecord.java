@@ -4,90 +4,117 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class AttendanceRecord {
-    private int id;
-    private String name;
-    private String date;
-    private String timeIn;
-    private String timeOut;
-    private String section;
-    private String idHash; // Add this
+    private final int id;
+    private final String name;
+    private final String date;
+    private String timeInAM;
+    private String timeOutAM;
+    private String timeInPM;
+    private String timeOutPM;
+    private final String section;
+    private boolean synced;
 
-    // Constructor with all fields
-    public AttendanceRecord(int id, String name, String date, String timeIn, String timeOut, String section) {
+    public AttendanceRecord(int id, String name, String date,
+                            String timeInAM, String timeOutAM,
+                            String timeInPM, String timeOutPM,
+                            String section) {
         this.id = id;
         this.name = name;
         this.date = date;
-        this.timeIn = timeIn;
-        this.timeOut = timeOut;
+        this.timeInAM = timeInAM;
+        this.timeOutAM = timeOutAM;
+        this.timeInPM = timeInPM;
+        this.timeOutPM = timeOutPM;
         this.section = section;
+        this.synced = false;
     }
 
-    // Getters
+    public Map<String, Object> toMap() {
+        Map<String, Object> map = new HashMap<>();
+        map.put("name", name);
+        map.put("date", date);
+        map.put("time_in_am", timeInAM);
+        map.put("time_out_am", timeOutAM);
+        map.put("time_in_pm", timeInPM);
+        map.put("time_out_pm", timeOutPM);
+        map.put("section", section);
+        return map;
+    }
+
+    public void setField(String field, String value) {
+        switch (field) {
+            case "time_in_am":
+                timeInAM = value;
+                break;
+            case "time_out_am":
+                timeOutAM = value;
+                break;
+            case "time_in_pm":
+                timeInPM = value;
+                break;
+            case "time_out_pm":
+                timeOutPM = value;
+                break;
+        }
+    }
+
+    public String getField(String field) {
+        switch (field) {
+            case "time_in_am":
+                return timeInAM;
+            case "time_out_am":
+                return timeOutAM;
+            case "time_in_pm":
+                return timeInPM;
+            case "time_out_pm":
+                return timeOutPM;
+            default:
+                return "-";
+        }
+    }
+
     public int getId() {
         return id;
-    }
-
-    // Setters
-    public void setId(int id) {
-        this.id = id;
     }
 
     public String getName() {
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
     public String getDate() {
         return date;
     }
 
-    public void setDate(String date) {
-        this.date = date;
+    public String getTimeInAM() {
+        return timeInAM;
     }
 
-    public String getTimeIn() {
-        return timeIn;
+    public String getTimeOutAM() {
+        return timeOutAM;
     }
 
-    public void setTimeIn(String timeIn) {
-        this.timeIn = timeIn;
+    public String getTimeInPM() {
+        return timeInPM;
     }
 
-    public String getTimeOut() {
-        return timeOut;
-    }
-
-    public void setTimeOut(String timeOut) {
-        this.timeOut = timeOut;
+    public String getTimeOutPM() {
+        return timeOutPM;
     }
 
     public String getSection() {
         return section;
     }
 
-    public void setSection(String section) {
-        this.section = section;
+    public boolean isSynced() {
+        return synced;
     }
 
-    // Convert to Firestore-compatible Map
-    public Map<String, Object> toMap() {
-        Map<String, Object> map = new HashMap<>();
-        map.put("name", name != null ? name : "");
-        map.put("date", date != null ? date : "");
-        map.put("time_in", timeIn != null ? timeIn : "");
-        map.put("time_out", timeOut != null ? timeOut : "");
-        map.put("section", section != null ? section : "");
-        return map;
+    public void setSynced(boolean synced) {
+        this.synced = synced;
     }
 
+    // ✅ Document ID generator to avoid duplicates
     public String getIdHash() {
-        return idHash;
-    }
-
-    public void setIdHash(String idHash) {
-        this.idHash = idHash;
+        return (name + "_" + date + "_" + section).replaceAll("\\s+", "_").toLowerCase();
     }
 }

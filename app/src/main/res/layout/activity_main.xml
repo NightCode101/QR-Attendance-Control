@@ -32,7 +32,7 @@
         android:paddingStart="24dp"
         android:paddingEnd="24dp"
         app:layout_constraintTop_toBottomOf="@id/appTitle"
-        app:layout_constraintBottom_toTopOf="@+id/modeRadioGroup"
+        app:layout_constraintBottom_toTopOf="@+id/timeSlotLayout"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
@@ -89,7 +89,7 @@
                     android:layout_marginTop="4dp" />
             </LinearLayout>
 
-            <!-- Section Input -->
+            <!-- Section Dropdown -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -102,23 +102,21 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="8dp"
-                    android:text="@string/bsit_label"
+                    android:text="BSIT"
                     android:textColor="@color/secondary_accent"
-                    android:textSize="15sp"
-                    android:textStyle="bold|normal" />
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
 
-                <EditText
-                    android:id="@+id/sectionEditText"
-                    android:layout_width="0dp"
-                    android:layout_height="45dp"
-                    android:layout_weight="1"
-                    android:autofillHints="username"
-                    android:hint="@string/enter_section"
-                    android:textColorHint="@color/hint"
+                <Spinner
+                    android:id="@+id/sectionSpinner"
+                    style="@style/SpinnerPopupStyle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
                     android:padding="8dp"
-                    android:textColor="@color/text_secondary"
-                    android:backgroundTint="@color/primary_accent"
-                    android:inputType="text" />
+                    android:background="@drawable/edit_text_bg"
+                    android:spinnerMode="dropdown"
+                    android:textColor="@color/text_primary"
+                    android:textColorHint="@color/hint" />
             </LinearLayout>
 
             <!-- Admin Button -->
@@ -143,38 +141,108 @@
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
-    <!-- Time In/Out RadioGroup -->
-    <RadioGroup
-        android:id="@+id/modeRadioGroup"
-        android:layout_width="wrap_content"
+    <!-- Time Slot Layout -->
+    <LinearLayout
+        android:id="@+id/timeSlotLayout"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="4dp"
         android:orientation="vertical"
-        android:layout_marginBottom="10dp"
-        android:layout_marginStart="24dp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        app:layout_constraintBottom_toTopOf="@+id/scanButton"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
-        <RadioButton
-            android:id="@+id/radioTimeIn"
-            android:layout_width="wrap_content"
+        <!-- AM | PM Labels -->
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/time_in"
-            android:textColor="@color/primary_accent"
-            android:textSize="14sp"
-            android:checked="true"
-            android:buttonTint="@color/radio_checked"
-            android:paddingBottom="4dp" />
+            android:layout_marginBottom="4dp"
+            android:orientation="horizontal">
 
-        <RadioButton
-            android:id="@+id/radioTimeOut"
-            android:layout_width="wrap_content"
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center_horizontal"
+                android:text="AM"
+                android:textColor="@color/primary_accent"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center_horizontal"
+                android:text="PM"
+                android:textColor="@color/primary_accent"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- Radio Groups -->
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/time_out"
-            android:textColor="@color/primary_accent"
-            android:textSize="14sp"
-            android:buttonTint="@color/radio_checked"
-            android:paddingTop="4dp" />
-    </RadioGroup>
+            android:orientation="horizontal">
+
+            <!-- AM RadioGroup -->
+
+            <!-- PM RadioGroup -->
+            <RadioGroup
+                android:id="@+id/amRadioGroup"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center_horizontal"
+                android:orientation="vertical">
+
+                <RadioButton
+                    android:id="@+id/radioTimeInAM"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:buttonTint="@color/radio_checked"
+                    android:text="Time In (AM)"
+                    android:textColor="@color/primary_accent" />
+
+                <RadioButton
+                    android:id="@+id/radioTimeOutAM"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:buttonTint="@color/radio_checked"
+                    android:text="Time Out (AM)"
+                    android:textColor="@color/primary_accent" />
+            </RadioGroup>
+
+            <RadioGroup
+                android:id="@+id/pmRadioGroup"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center_horizontal"
+                android:orientation="vertical">
+
+                <RadioButton
+                    android:id="@+id/radioTimeInPM"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:buttonTint="@color/radio_checked"
+                    android:text="Time In (PM)"
+                    android:textColor="@color/primary_accent" />
+
+                <RadioButton
+                    android:id="@+id/radioTimeOutPM"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:buttonTint="@color/radio_checked"
+                    android:text="Time Out (PM)"
+                    android:textColor="@color/primary_accent" />
+            </RadioGroup>
+        </LinearLayout>
+    </LinearLayout>
 
     <!-- Scan Button -->
     <Button
@@ -185,10 +253,11 @@
         android:textSize="16sp"
         android:backgroundTint="@color/button_scan"
         android:textColor="@color/white"
-        android:layout_marginStart="8dp"
+        android:layout_marginStart="24dp"
         android:layout_marginEnd="24dp"
-        android:layout_marginBottom="10dp"
+        android:layout_marginBottom="5dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toEndOf="@id/modeRadioGroup"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

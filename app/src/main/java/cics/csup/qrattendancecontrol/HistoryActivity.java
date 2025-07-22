@@ -7,6 +7,7 @@ import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.Gravity;
+import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -49,6 +50,13 @@ public class HistoryActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        getWindow().setNavigationBarColor(Color.parseColor("#121212"));
+        getWindow().setStatusBarColor(Color.parseColor("#121212"));
+
+        // Make status bar and nav bar icons light (only works on Android 6.0+)
+        View decor = getWindow().getDecorView();
+        decor.setSystemUiVisibility(0); // Clears flags like LIGHT_STATUS_BAR
+
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_history);
@@ -105,11 +113,13 @@ public class HistoryActivity extends AppCompatActivity {
         for (AttendanceRecord record : currentRecords) {
             TextView row = new TextView(this);
             row.setText(String.format(Locale.getDefault(),
-                    "%s\nDate: %s\nTime In: %s\nTime Out: %s",
+                    "%s\nDate: %s\nTime In AM: %s\nTime Out AM: %s\nTime In PM: %s\nTime Out PM: %s",
                     record.getName(),
                     record.getDate(),
-                    record.getTimeIn(),
-                    record.getTimeOut() != null ? record.getTimeOut() : "-"));
+                    record.getTimeInAM(),
+                    record.getTimeOutAM(),
+                    record.getTimeInPM(),
+                    record.getTimeOutPM()));
 
             row.setTextSize(16);
             row.setTypeface(Typeface.MONOSPACE);
@@ -163,13 +173,17 @@ public class HistoryActivity extends AppCompatActivity {
 
     private void writeCSVToUri(Uri uri) {
         StringBuilder data = new StringBuilder();
-        data.append("Name,Date,Time In,Time Out\n");
+        data.append("Name,Date,Time In AM,Time Out AM,Time In PM,Time Out PM,Section\n");
 
         for (AttendanceRecord record : currentRecords) {
-            data.append("\"").append(record.getName()).append("\",")
-                    .append("\"").append(record.getDate()).append("\",")
-                    .append("\"").append(record.getTimeIn()).append("\",")
-                    .append("\"").append(record.getTimeOut() != null ? record.getTimeOut() : "-").append("\"\n");
+            data.append(String.format("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n",
+                    record.getName(),
+                    record.getDate(),
+                    record.getTimeInAM(),
+                    record.getTimeOutAM(),
+                    record.getTimeInPM(),
+                    record.getTimeOutPM(),
+                    record.getSection()));
         }
 
         try (OutputStream outputStream = getContentResolver().openOutputStream(uri);
@@ -186,30 +200,30 @@ public class HistoryActivity extends AppCompatActivity {
 
     private void shareCSVDirectly() {
         try {
-            // Generate matching filename
             String section = getSharedPreferences("AttendancePrefs", MODE_PRIVATE)
                     .getString("last_section", "Section");
             String safeSection = section.replaceAll("[^a-zA-Z0-9]", "_");
             String currentDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
             String fileName = "BSIT_" + safeSection + "_" + currentDate + ".csv";
 
-            // Create file in cache directory with that name
             File cacheFile = new File(getCacheDir(), fileName);
             try (FileOutputStream fos = new FileOutputStream(cacheFile);
                  OutputStreamWriter writer = new OutputStreamWriter(fos)) {
 
-                writer.write("Name,Date,Time In,Time Out\n");
+                writer.write("Name,Date,Time In AM,Time Out AM,Time In PM,Time Out PM,Section\n");
                 for (AttendanceRecord record : currentRecords) {
-                    writer.write(String.format("\"%s\",\"%s\",\"%s\",\"%s\"\n",
+                    writer.write(String.format("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n",
                             record.getName(),
                             record.getDate(),
-                            record.getTimeIn(),
-                            record.getTimeOut() != null ? record.getTimeOut() : "-"));
+                            record.getTimeInAM(),
+                            record.getTimeOutAM(),
+                            record.getTimeInPM(),
+                            record.getTimeOutPM(),
+                            record.getSection()));
                 }
                 writer.flush();
             }
 
-            // Share the CSV file via other apps
             Uri uri = FileProvider.getUriForFile(this,
                     getApplicationContext().getPackageName() + ".fileprovider", cacheFile);
 
@@ -225,7 +239,6 @@ public class HistoryActivity extends AppCompatActivity {
             e.printStackTrace();
         }
     }
-
 
     private void applyWindowInsetPadding() {
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content), (view, insets) -> {
