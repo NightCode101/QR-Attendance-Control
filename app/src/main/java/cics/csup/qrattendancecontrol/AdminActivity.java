@@ -16,6 +16,10 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.Spinner;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.util.Log;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -33,11 +37,13 @@ import java.io.OutputStreamWriter;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.Collections;
 
 public class AdminActivity extends AppCompatActivity {
 
@@ -50,6 +56,10 @@ public class AdminActivity extends AppCompatActivity {
     private Button exportCsvButton;
     private SwipeRefreshLayout swipeRefreshLayout;
     private String currentSection = null;
+    private Spinner daySpinner, monthSpinner, yearSpinner;
+    private Calendar selectedDate = null;
+    private TextView dateFilterTextView;
+    private TextView sectionTotalTextView;
 
     private final ActivityResultLauncher<Intent> createFileLauncher =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
@@ -66,22 +76,17 @@ public class AdminActivity extends AppCompatActivity {
         getWindow().setNavigationBarColor(Color.parseColor("#121212"));
         getWindow().setStatusBarColor(Color.parseColor("#121212"));
 
-        // Make status bar and nav bar icons light (only works on Android 6.0+)
         View decor = getWindow().getDecorView();
-        decor.setSystemUiVisibility(0); // Clears flags like LIGHT_STATUS_BAR
+        decor.setSystemUiVisibility(0);
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_admin);
 
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        String ADMIN_UID = "KCKVGF5sJ7TfGWKAl0fRJziE4Ja2"; // Replace with actual admin UID
-
-        if (user == null || !user.getUid().equals(ADMIN_UID)) {
-            Toast.makeText(this, "Access denied. Not an admin.", Toast.LENGTH_SHORT).show();
-            finish();
-            return;
-        }
-
+        // Find views once
+        daySpinner = findViewById(R.id.daySpinner);
+        monthSpinner = findViewById(R.id.monthSpinner);
+        yearSpinner = findViewById(R.id.yearSpinner);
+        dateFilterTextView = findViewById(R.id.dateFilterTextView);
         sectionButtonContainer = findViewById(R.id.sectionButtonContainer);
         adminAttendanceContainer = findViewById(R.id.adminDataContainer);
         searchNameEditText = findViewById(R.id.searchNameEditText);
@@ -89,15 +94,22 @@ public class AdminActivity extends AppCompatActivity {
         swipeRefreshLayout = findViewById(R.id.adminSwipeRefreshLayout);
         firestore = FirebaseFirestore.getInstance();
 
+        // Populate spinners
+        setupDateSpinners();
+
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        String ADMIN_UID = "KCKVGF5sJ7TfGWKAl0fRJziE4Ja2";
+
+        if (user == null || !user.getUid().equals(ADMIN_UID)) {
+            Toast.makeText(this, "Access denied. Not an admin.", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+
+        // Listeners
         searchNameEditText.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-            }
-
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void afterTextChanged(Editable s) {}
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 if (currentSection != null) showRecordsForSection(currentSection);
@@ -107,7 +119,67 @@ public class AdminActivity extends AppCompatActivity {
         swipeRefreshLayout.setOnRefreshListener(this::loadAllRecords);
         exportCsvButton.setOnClickListener(v -> createCSVFile());
 
+        AdapterView.OnItemSelectedListener dateChangeListener = new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                updateDateFilterLabel();
+                if (currentSection != null) showRecordsForSection(currentSection);
+            }
+            @Override public void onNothingSelected(AdapterView<?> parent) {}
+        };
+        sectionTotalTextView = findViewById(R.id.sectionTotalTextView);
+
+        daySpinner.setOnItemSelectedListener(dateChangeListener);
+        monthSpinner.setOnItemSelectedListener(dateChangeListener);
+        yearSpinner.setOnItemSelectedListener(dateChangeListener);
+
+        updateDateFilterLabel();
         loadAllRecords();
+    }
+
+    private void setupDateSpinners() {
+        List<String> days = new ArrayList<>();
+        days.add("Day");
+        for (int i = 1; i <= 31; i++) days.add(String.valueOf(i));
+        ArrayAdapter<String> dayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, days);
+        dayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        daySpinner.setAdapter(dayAdapter);
+
+        List<String> months = new ArrayList<>();
+        months.add("Month");
+        Collections.addAll(months, "January", "February", "March", "April", "May", "June",
+                "July", "August", "September", "October", "November", "December");
+        ArrayAdapter<String> monthAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, months);
+        monthAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        monthSpinner.setAdapter(monthAdapter);
+
+        List<String> years = new ArrayList<>();
+        years.add("Year");
+        for (int i = 2023; i <= 2030; i++) years.add(String.valueOf(i));
+        ArrayAdapter<String> yearAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, years);
+        yearAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        yearSpinner.setAdapter(yearAdapter);
+    }
+
+    private void updateDateFilterLabel() {
+        if (daySpinner == null || monthSpinner == null || yearSpinner == null || dateFilterTextView == null) return;
+
+        String day = daySpinner.getSelectedItem() != null ? daySpinner.getSelectedItem().toString() : "";
+        String month = monthSpinner.getSelectedItem() != null ? monthSpinner.getSelectedItem().toString() : "";
+        String year = yearSpinner.getSelectedItem() != null ? yearSpinner.getSelectedItem().toString() : "";
+
+        if (!"Day".equals(day) && !"Month".equals(month) && !"Year".equals(year)) {
+            dateFilterTextView.setText(String.format("Showing results for: %s %s, %s", month, day, year));
+            selectedDate = Calendar.getInstance();
+            selectedDate.set(Calendar.DAY_OF_MONTH, Integer.parseInt(day));
+            // Calendar months are zero-based
+            int monthIndex = monthSpinner.getSelectedItemPosition() - 1; // subtract 1 because "Month" placeholder is first
+            selectedDate.set(Calendar.MONTH, monthIndex);
+            selectedDate.set(Calendar.YEAR, Integer.parseInt(year));
+        } else {
+            dateFilterTextView.setText("No date selected");
+            selectedDate = null;
+        }
     }
 
     private void loadAllRecords() {
@@ -119,19 +191,28 @@ public class AdminActivity extends AppCompatActivity {
                     for (QueryDocumentSnapshot doc : querySnapshots) {
                         String name = doc.getString("name");
                         String section = doc.getString("section");
-                        String date = doc.getString("date");
+                        String rawDate = doc.getString("date");
+                        String formattedDate = rawDate;
+
+                        try {
+                            Date parsed = new SimpleDateFormat("MMMM d, yyyy", Locale.US).parse(rawDate);
+                            formattedDate = new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(parsed);
+                        } catch (Exception e) {
+                            Log.e("DateParse", "Error parsing date: " + rawDate, e);
+                        }
+
                         String timeInAM = doc.getString("time_in_am");
                         String timeOutAM = doc.getString("time_out_am");
                         String timeInPM = doc.getString("time_in_pm");
                         String timeOutPM = doc.getString("time_out_pm");
 
-                        if (name != null && section != null && date != null) {
-                            section = section.trim().toUpperCase(); // normalize
+                        if (name != null && section != null && formattedDate != null) {
+                            section = section.trim().toUpperCase();
 
                             AttendanceRecord record = new AttendanceRecord(
                                     0,
                                     name,
-                                    date,
+                                    formattedDate, // <-- use the formatted date here
                                     timeInAM != null ? timeInAM : "-",
                                     timeOutAM != null ? timeOutAM : "-",
                                     timeInPM != null ? timeInPM : "-",
@@ -139,7 +220,6 @@ public class AdminActivity extends AppCompatActivity {
                                     section
                             );
 
-                            String docId = record.getIdHash();
                             allRecords.add(record);
                             sectionSet.add(section);
                         }
@@ -156,6 +236,7 @@ public class AdminActivity extends AppCompatActivity {
 
     private void renderSectionButtons() {
         sectionButtonContainer.removeAllViews();
+        TextView sectionTotalTextView = findViewById(R.id.sectionTotalTextView); // make sure this TextView exists in layout
 
         List<String> predefinedSections = Arrays.asList(
                 "1A", "1B", "1C", "1D",
@@ -184,8 +265,18 @@ public class AdminActivity extends AppCompatActivity {
 
             btn.setOnClickListener(v -> {
                 currentSection = section;
-                renderSectionButtons(); // Refresh highlight
-                showRecordsForSection(section); // Display records
+                renderSectionButtons(); // re-style buttons
+                showRecordsForSection(section); // refresh list
+
+                // ✅ Count matching records
+                int count = 0;
+                for (AttendanceRecord record : allRecords) {
+                    if (record.getSection().equalsIgnoreCase(section)) {
+                        count++;
+                    }
+                }
+
+                sectionTotalTextView.setText("Total: " + count);
             });
 
             sectionButtonContainer.addView(btn);
@@ -193,22 +284,35 @@ public class AdminActivity extends AppCompatActivity {
 
         if (currentSection == null) {
             currentSection = predefinedSections.get(0);
-            renderSectionButtons(); // Highlight first by default
+            renderSectionButtons();
             showRecordsForSection(currentSection);
+
+            // ✅ Show total for default section
+            int count = 0;
+            for (AttendanceRecord record : allRecords) {
+                if (record.getSection().equalsIgnoreCase(currentSection)) {
+                    count++;
+                }
+            }
+            sectionTotalTextView.setText("Total: " + count);
         }
     }
-
 
     private void showRecordsForSection(String section) {
         adminAttendanceContainer.removeAllViews();
         String query = searchNameEditText.getText().toString().toLowerCase(Locale.getDefault());
 
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+        String selectedDateString = selectedDate != null ? sdf.format(selectedDate.getTime()) : null;
+
         List<AttendanceRecord> filtered = new ArrayList<>();
         for (AttendanceRecord record : allRecords) {
-            if (record.getSection().equalsIgnoreCase(section)) {
-                if (query.isEmpty() || record.getName().toLowerCase().contains(query)) {
-                    filtered.add(record);
-                }
+            boolean nameMatches = query.isEmpty() || record.getName().toLowerCase().contains(query);
+            boolean sectionMatches = record.getSection().equalsIgnoreCase(section);
+            boolean dateMatches = selectedDateString == null || selectedDateString.equals(record.getDate());
+
+            if (sectionMatches && nameMatches && dateMatches) {
+                filtered.add(record);
             }
         }
 
@@ -216,6 +320,7 @@ public class AdminActivity extends AppCompatActivity {
             showEmptyMessage(section);
             return;
         }
+        sectionTotalTextView.setText("Total in this section: " + filtered.size());
 
         for (AttendanceRecord record : filtered) {
             addRecordToUI(record);

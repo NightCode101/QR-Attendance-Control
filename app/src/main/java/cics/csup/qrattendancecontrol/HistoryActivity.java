@@ -12,6 +12,9 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.EditText;
+import android.text.Editable;
+import android.text.TextWatcher;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -29,6 +32,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.ArrayList;
 
 public class HistoryActivity extends AppCompatActivity {
 
@@ -37,6 +41,7 @@ public class HistoryActivity extends AppCompatActivity {
     private Button clearHistoryButton;
     private Button exportCSVButton;
     private List<AttendanceRecord> currentRecords;
+    private EditText searchNameEditText;
 
     private final ActivityResultLauncher<Intent> createFileLauncher =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
@@ -94,13 +99,32 @@ public class HistoryActivity extends AppCompatActivity {
                 showExportOptions();
             }
         });
+
+        searchNameEditText = findViewById(R.id.searchNameEditText);
+
+        searchNameEditText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                filterHistory(s.toString());
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
+
     }
 
     private void loadHistory() {
         historyContainer.removeAllViews();
         currentRecords = dbHelper.getAttendanceRecords();
 
+        TextView totalTextView = findViewById(R.id.totalTextView); // Get reference to the TextView
+
         if (currentRecords.isEmpty()) {
+            totalTextView.setText("Total: 0"); // Update total
             TextView empty = new TextView(this);
             empty.setText("No attendance records found.");
             empty.setGravity(Gravity.CENTER);
@@ -109,6 +133,8 @@ public class HistoryActivity extends AppCompatActivity {
             historyContainer.addView(empty);
             return;
         }
+
+        totalTextView.setText("Total: " + currentRecords.size()); // Set the total count
 
         for (AttendanceRecord record : currentRecords) {
             TextView row = new TextView(this);
@@ -132,7 +158,7 @@ public class HistoryActivity extends AppCompatActivity {
                         .setMessage("Are you sure you want to delete this record?")
                         .setPositiveButton("Delete", (dialog, which) -> {
                             dbHelper.deleteAttendanceById(record.getId());
-                            loadHistory();
+                            loadHistory(); // Reload list
                             Toast.makeText(this, "Entry deleted.", Toast.LENGTH_SHORT).show();
                         })
                         .setNegativeButton("Cancel", null)
@@ -247,5 +273,53 @@ public class HistoryActivity extends AppCompatActivity {
             view.setPadding(0, topInset, 0, bottomInset);
             return insets;
         });
+    }
+
+    private void filterHistory(String query) {
+        historyContainer.removeAllViews();
+        TextView totalTextView = findViewById(R.id.totalTextView);
+
+        if (currentRecords == null || currentRecords.isEmpty()) {
+            totalTextView.setText("Total: 0");
+            return;
+        }
+
+        List<AttendanceRecord> filtered = new ArrayList<>();
+        for (AttendanceRecord record : currentRecords) {
+            if (record.getName().toLowerCase().contains(query.toLowerCase())) {
+                filtered.add(record);
+            }
+        }
+
+        totalTextView.setText("Total: " + filtered.size());
+
+        if (filtered.isEmpty()) {
+            TextView empty = new TextView(this);
+            empty.setText("No matching records found.");
+            empty.setGravity(Gravity.CENTER);
+            empty.setTextSize(16);
+            empty.setPadding(16, 32, 16, 32);
+            historyContainer.addView(empty);
+            return;
+        }
+
+        for (AttendanceRecord record : filtered) {
+            TextView row = new TextView(this);
+            row.setText(String.format(Locale.getDefault(),
+                    "%s\nDate: %s\nTime In AM: %s\nTime Out AM: %s\nTime In PM: %s\nTime Out PM: %s",
+                    record.getName(),
+                    record.getDate(),
+                    record.getTimeInAM(),
+                    record.getTimeOutAM(),
+                    record.getTimeInPM(),
+                    record.getTimeOutPM()));
+
+            row.setTextSize(16);
+            row.setTypeface(Typeface.MONOSPACE);
+            row.setTextColor(Color.DKGRAY);
+            row.setPadding(16, 24, 16, 24);
+
+            historyContainer.addView(row);
+        }
     }
 }
