@@ -5,12 +5,13 @@ plugins {
 
 android {
     namespace = "cics.csup.qrattendancecontrol"
-    compileSdk = 36 //
+    compileSdk = 36
+    //
 
     defaultConfig {
         applicationId = "cics.csup.qrattendancecontrol"
         minSdk = 29
-        targetSdk = 35
+        targetSdk = 34
         versionCode = 3
         versionName = "3.1"
 
@@ -25,11 +26,6 @@ android {
                 "proguard-rules.pro"
             )
         }
-    }
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
     }
 
     buildFeatures {
