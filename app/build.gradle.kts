@@ -5,14 +5,14 @@ plugins {
 
 android {
     namespace = "cics.csup.qrattendancecontrol"
-    compileSdk = 34 //
+    compileSdk = 36 //
 
     defaultConfig {
         applicationId = "cics.csup.qrattendancecontrol"
         minSdk = 29
-        targetSdk = 34
-        versionCode = 2
-        versionName = "2.1"
+        targetSdk = 36
+        versionCode = 3
+        versionName = "3.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -35,6 +35,8 @@ android {
     buildFeatures {
         viewBinding = true
     }
+    buildToolsVersion = "36.0.0"
+    ndkVersion = "29.0.13599879 rc2"
 }
 
 dependencies {
@@ -42,16 +44,16 @@ dependencies {
     implementation("com.journeyapps:zxing-android-embedded:4.3.0")
 
     // Firebase Core
-    implementation("com.google.firebase:firebase-analytics:21.6.1")
+    implementation("com.google.firebase:firebase-analytics:23.0.0")
 
     // Firestore
-    implementation("com.google.firebase:firebase-firestore:24.4.5")
+    implementation("com.google.firebase:firebase-firestore:26.0.0")
 
     // Firebase Auth
-    implementation("com.google.firebase:firebase-auth:22.3.1")
+    implementation("com.google.firebase:firebase-auth:24.0.0")
 
     // Firebase BoM
-    implementation(platform("com.google.firebase:firebase-bom:33.16.0"))
+    implementation(platform("com.google.firebase:firebase-bom:34.0.0"))
 
     // AndroidX + UI
     implementation(libs.appcompat)
