@@ -33,6 +33,10 @@ android {
     }
     buildToolsVersion = "36.0.0"
     ndkVersion = "29.0.13599879 rc2"
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
 }
 
 dependencies {
