@@ -10,7 +10,7 @@ android {
     defaultConfig {
         applicationId = "cics.csup.qrattendancecontrol"
         minSdk = 29
-        targetSdk = 36
+        targetSdk = 35
         versionCode = 3
         versionName = "3.1"
 
