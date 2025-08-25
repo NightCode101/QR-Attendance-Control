@@ -6,7 +6,6 @@ import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
-import android.view.ContextThemeWrapper;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -41,18 +40,11 @@ import java.util.List;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
-    private static final String[] SECTIONS = {
-            "1A", "1B", "1C", "1D",
-            "2A", "2B", "2C",
-            "3A", "3B", "3C",
-            "4A", "4B", "4C"
-    };
     private RadioGroup amRadioGroup, pmRadioGroup;
     private Button scanButton, historyButton;
     private TextView qrDataText, statusText, timeText, dateText;
     private AttendanceDBHelper db;
     private SharedPreferences sharedPreferences;
-    private RadioButton radioTimeInAM, radioTimeOutAM, radioTimeInPM, radioTimeOutPM;
 
     private static final String PREFS_NAME = "AttendancePrefs";
     private static final String KEY_SECTION = "last_section";
@@ -148,13 +140,13 @@ public class MainActivity extends AppCompatActivity {
 
         // Populate dropdown
         List<String> sectionList = Arrays.asList(
-                "Select a Section", // Hint item
+                "Select a Section",// Hint item
                 "1A", "1B", "1C", "1D",
                 "2A", "2B", "2C",
                 "3A", "3B", "3C",
-                "4A", "4B", "4C"
+                "4A", "4B", "4C",
+                "COLSC", "TESTING PURPOSES"
         );
-        ContextThemeWrapper themedContext = new ContextThemeWrapper(this, R.style.SpinnerPopupStyle);
 
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, sectionList) {
             @Override
