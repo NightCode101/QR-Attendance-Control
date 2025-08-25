@@ -48,6 +48,7 @@
 
         <activity android:name=".AdminActivity" />
         <activity android:name=".LoginActivity"></activity>
-    </application>
 
+        <activity android:name=".GraphActivity" />
+    </application>
 </manifest>

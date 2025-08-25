@@ -40,7 +40,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-
 public class MainActivity extends AppCompatActivity {
     private static final String[] SECTIONS = {
             "1A", "1B", "1C", "1D",
@@ -72,6 +71,12 @@ public class MainActivity extends AppCompatActivity {
         pmRadioGroup = findViewById(R.id.pmRadioGroup);
         RadioButton radioTimeInPM = findViewById(R.id.radioTimeInPM);
         RadioButton radioTimeOutPM = findViewById(R.id.radioTimeOutPM);
+
+        Button graphButton = findViewById(R.id.graphButton);
+        graphButton.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, GraphActivity.class);
+            startActivity(intent);
+        });
 
         // Use array to hold amListener so it can be accessed inside pmListener
         final RadioGroup.OnCheckedChangeListener[] amListener = new RadioGroup.OnCheckedChangeListener[1];
@@ -233,6 +238,8 @@ public class MainActivity extends AppCompatActivity {
         });
         syncUnsyncedDataToFirebase();
     }
+
+
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -433,4 +440,5 @@ public class MainActivity extends AppCompatActivity {
         }
         return false;
     }
+
 }

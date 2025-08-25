@@ -121,15 +121,14 @@
 
             <!-- Admin Button -->
             <Button
-                android:id="@+id/adminButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp"
-                android:backgroundTint="@color/button_history"
-                android:text="@string/admin_panel"
-                android:textColor="@color/white" />
-
-            <!-- History Button -->
+            android:id="@+id/adminButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            android:backgroundTint="@color/button_history"
+            android:text="@string/admin_panel"
+            android:textColor="@color/white" />
+        <!-- History Button -->
             <Button
                 android:id="@+id/historyButton"
                 android:layout_width="match_parent"
@@ -138,6 +137,17 @@
                 android:backgroundTint="@color/button_history"
                 android:text="@string/attendance_history"
                 android:textColor="@color/white" />
+
+            <!-- Graph Button -->
+            <Button
+                android:id="@+id/graphButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:backgroundTint="@color/button_history"
+                android:text="Show Attendance Chart"
+                android:textColor="@color/white"
+                android:enabled="false"/>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
@@ -188,8 +198,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
-
-            <!-- AM RadioGroup -->
 
             <!-- PM RadioGroup -->
             <RadioGroup

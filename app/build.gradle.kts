@@ -5,15 +5,15 @@ plugins {
 
 android {
     namespace = "cics.csup.qrattendancecontrol"
-    compileSdk = 36
+    compileSdk = 34
     //
 
     defaultConfig {
         applicationId = "cics.csup.qrattendancecontrol"
         minSdk = 29
         targetSdk = 34
-        versionCode = 3
-        versionName = "3.1"
+        versionCode = 4
+        versionName = "4.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -43,17 +43,13 @@ dependencies {
     // QR Scanner
     implementation("com.journeyapps:zxing-android-embedded:4.3.0")
 
-    // Firebase Core
-    implementation("com.google.firebase:firebase-analytics:23.0.0")
-
-    // Firestore
-    implementation("com.google.firebase:firebase-firestore:26.0.0")
-
-    // Firebase Auth
-    implementation("com.google.firebase:firebase-auth:24.0.0")
-
-    // Firebase BoM
+    // Firebase BoM (manages versions automatically)
     implementation(platform("com.google.firebase:firebase-bom:34.0.0"))
+
+    // Firebase (no versions when using BoM)
+    implementation("com.google.firebase:firebase-analytics")
+    implementation("com.google.firebase:firebase-firestore")
+    implementation("com.google.firebase:firebase-auth")
 
     // AndroidX + UI
     implementation(libs.appcompat)
@@ -67,5 +63,9 @@ dependencies {
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
 
+    // MPAndroidChart
+    implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
+
+    // Swipe to Refresh
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
 }
