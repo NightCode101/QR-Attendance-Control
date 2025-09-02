@@ -20,12 +20,14 @@ import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.content.IntentFilter;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -45,7 +47,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView qrDataText, statusText, timeText, dateText;
     private AttendanceDBHelper db;
     private SharedPreferences sharedPreferences;
-
+    private NetworkChangeReceiver networkChangeReceiver;
     private static final String PREFS_NAME = "AttendancePrefs";
     private static final String KEY_SECTION = "last_section";
     private FirebaseFirestore firestore;
@@ -115,6 +117,10 @@ public class MainActivity extends AppCompatActivity {
 
         FirebaseApp.initializeApp(this);
         firestore = FirebaseFirestore.getInstance();
+
+        // Register network listener
+        networkChangeReceiver = new NetworkChangeReceiver(this::syncUnsyncedDataToFirebase);
+        registerReceiver(networkChangeReceiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
 
         View customToastView = LayoutInflater.from(this).inflate(R.layout.custom_toast, null);
         Toast customToast = new Toast(getApplicationContext());
@@ -231,7 +237,13 @@ public class MainActivity extends AppCompatActivity {
         syncUnsyncedDataToFirebase();
     }
 
-
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (networkChangeReceiver != null) {
+            unregisterReceiver(networkChangeReceiver);
+        }
+    }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -260,7 +272,7 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
 
-            statusText.setText("Status: " + field.replace("_", " ").toUpperCase(Locale.getDefault()));
+            statusText.setText("Status: " + field.replace("_", " ").toUpperCase(Locale.getDefault())) ;
 
             // Local validation
             AttendanceRecord localRecord = db.getRecordByNameDateSection(qrContent, currentDate, section);
@@ -268,28 +280,21 @@ public class MainActivity extends AppCompatActivity {
             String localOutPM = localRecord != null ? localRecord.getTimeOutPM() : "-";
             String localOutAM = localRecord != null ? localRecord.getTimeOutAM() : "-";
 
-            // Prevent AM actions if any PM slot is filled
             if ((field.equals("time_in_am") || field.equals("time_out_am")) &&
                     ((localInPM != null && !localInPM.equals("-")) || (localOutPM != null && !localOutPM.equals("-")))) {
                 Toast.makeText(this, "Cannot mark AM slots after PM slots.", Toast.LENGTH_LONG).show();
                 return;
             }
-
-            // Block Time In AM if already timed out in AM
-            if (field.equals("time_in_am") &&
-                    (localOutAM != null && !localOutAM.equals("-"))) {
+            if (field.equals("time_in_am") && (localOutAM != null && !localOutAM.equals("-"))) {
                 Toast.makeText(this, "You already timed out in the morning. Cannot time in now.", Toast.LENGTH_LONG).show();
                 return;
             }
-
-            // Block Time In PM if PM already filled
             if (field.equals("time_in_pm") &&
                     ((localInPM != null && !localInPM.equals("-")) || (localOutPM != null && !localOutPM.equals("-")))) {
                 Toast.makeText(this, "PM slot already filled. Cannot time in again.", Toast.LENGTH_LONG).show();
                 return;
             }
 
-            // Firestore validation
             firestore.collection("attendance_records")
                     .whereEqualTo("name", qrContent)
                     .whereEqualTo("date", currentDate)
@@ -303,46 +308,42 @@ public class MainActivity extends AppCompatActivity {
                                 String remoteOutPM = doc.getString("time_out_pm");
                                 String remoteOutAM = doc.getString("time_out_am");
 
-                                // Prevent AM actions if any PM slot exists remotely
                                 if ((field.equals("time_in_am") || field.equals("time_out_am")) &&
                                         ((remoteInPM != null && !remoteInPM.equals("-")) ||
                                                 (remoteOutPM != null && !remoteOutPM.equals("-")))) {
                                     Toast.makeText(this, "Cannot mark AM slots after PM slots (cloud).", Toast.LENGTH_LONG).show();
                                     return;
                                 }
-
-                                // Block Time In AM if already timed out remotely
                                 if (field.equals("time_in_am") &&
                                         (remoteOutAM != null && !remoteOutAM.equals("-"))) {
                                     Toast.makeText(this, "You already timed out in the morning (cloud). Cannot time in now.", Toast.LENGTH_LONG).show();
                                     return;
                                 }
-
-                                // Block Time In PM if any PM slot filled remotely
                                 if (field.equals("time_in_pm") &&
                                         ((remoteInPM != null && !remoteInPM.equals("-")) ||
                                                 (remoteOutPM != null && !remoteOutPM.equals("-")))) {
                                     Toast.makeText(this, "PM slot already filled (cloud). Cannot time in again.", Toast.LENGTH_LONG).show();
                                     return;
                                 }
-
-                                // Block overwrite
                                 if (existingFieldValue != null && !existingFieldValue.equals("-")) {
                                     Toast.makeText(this, "This time slot is already filled. Cannot overwrite.", Toast.LENGTH_LONG).show();
                                     return;
                                 }
 
-                                // Update record
+                                // ✅ Update record
                                 db.markDetailedAttendance(qrContent, currentDate, section, field, currentTime);
                                 firestore.collection("attendance_records")
                                         .document(doc.getId())
                                         .update(field, currentTime)
-                                        .addOnSuccessListener(unused ->
-                                                Toast.makeText(this, "Updated record", Toast.LENGTH_SHORT).show());
+                                        .addOnSuccessListener(unused -> {
+                                            Toast.makeText(this, "Updated record", Toast.LENGTH_SHORT).show();
+                                            // 🔔 Notify history instantly
+                                            LocalBroadcastManager.getInstance(this).sendBroadcast(new Intent("ATTENDANCE_UPDATED"));
+                                        });
                                 break;
                             }
                         } else {
-                            // No existing record, create new
+                            // ✅ New record
                             db.markDetailedAttendance(qrContent, currentDate, section, field, currentTime);
                             AttendanceRecord record = new AttendanceRecord(
                                     0, qrContent, currentDate, "-", "-", "-", "-", section
@@ -352,14 +353,18 @@ public class MainActivity extends AppCompatActivity {
                             firestore.collection("attendance_records")
                                     .document(record.getIdHash())
                                     .set(record.toMap())
-                                    .addOnSuccessListener(unused ->
-                                            Toast.makeText(this, "New record added", Toast.LENGTH_SHORT).show());
+                                    .addOnSuccessListener(unused -> {
+                                        Toast.makeText(this, "New record added", Toast.LENGTH_SHORT).show();
+                                        // 🔔 Notify history instantly
+                                        LocalBroadcastManager.getInstance(this).sendBroadcast(new Intent("ATTENDANCE_UPDATED"));
+                                    });
                         }
                     })
                     .addOnFailureListener(e ->
                             Toast.makeText(this, "Error accessing Firestore: " + e.getMessage(), Toast.LENGTH_LONG).show());
         }
     }
+
 
     private void syncUnsyncedDataToFirebase() {
         if (!isOnline()) return;

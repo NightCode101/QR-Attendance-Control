@@ -29,91 +29,52 @@ public class AttendanceRecord {
         this.synced = false;
     }
 
+    // Only include non-empty times
     public Map<String, Object> toMap() {
         Map<String, Object> map = new HashMap<>();
         map.put("name", name);
         map.put("date", date);
-        map.put("time_in_am", timeInAM);
-        map.put("time_out_am", timeOutAM);
-        map.put("time_in_pm", timeInPM);
-        map.put("time_out_pm", timeOutPM);
         map.put("section", section);
+
+        if (timeInAM != null && !timeInAM.equals("-")) map.put("time_in_am", timeInAM);
+        if (timeOutAM != null && !timeOutAM.equals("-")) map.put("time_out_am", timeOutAM);
+        if (timeInPM != null && !timeInPM.equals("-")) map.put("time_in_pm", timeInPM);
+        if (timeOutPM != null && !timeOutPM.equals("-")) map.put("time_out_pm", timeOutPM);
+
         return map;
     }
 
     public void setField(String field, String value) {
         switch (field) {
-            case "time_in_am":
-                timeInAM = value;
-                break;
-            case "time_out_am":
-                timeOutAM = value;
-                break;
-            case "time_in_pm":
-                timeInPM = value;
-                break;
-            case "time_out_pm":
-                timeOutPM = value;
-                break;
+            case "time_in_am": timeInAM = value; break;
+            case "time_out_am": timeOutAM = value; break;
+            case "time_in_pm": timeInPM = value; break;
+            case "time_out_pm": timeOutPM = value; break;
         }
     }
 
     public String getField(String field) {
         switch (field) {
-            case "time_in_am":
-                return timeInAM;
-            case "time_out_am":
-                return timeOutAM;
-            case "time_in_pm":
-                return timeInPM;
-            case "time_out_pm":
-                return timeOutPM;
-            default:
-                return "-";
+            case "time_in_am": return timeInAM;
+            case "time_out_am": return timeOutAM;
+            case "time_in_pm": return timeInPM;
+            case "time_out_pm": return timeOutPM;
+            default: return "-";
         }
     }
 
-    public int getId() {
-        return id;
-    }
+    public int getId() { return id; }
+    public String getName() { return name; }
+    public String getDate() { return date; }
+    public String getTimeInAM() { return timeInAM; }
+    public String getTimeOutAM() { return timeOutAM; }
+    public String getTimeInPM() { return timeInPM; }
+    public String getTimeOutPM() { return timeOutPM; }
+    public String getSection() { return section; }
+    public boolean isSynced() { return synced; }
+    public void setSynced(boolean synced) { this.synced = synced; }
 
-    public String getName() {
-        return name;
-    }
-
-    public String getDate() {
-        return date;
-    }
-
-    public String getTimeInAM() {
-        return timeInAM;
-    }
-
-    public String getTimeOutAM() {
-        return timeOutAM;
-    }
-
-    public String getTimeInPM() {
-        return timeInPM;
-    }
-
-    public String getTimeOutPM() {
-        return timeOutPM;
-    }
-
-    public String getSection() {
-        return section;
-    }
-
-    public boolean isSynced() {
-        return synced;
-    }
-
-    public void setSynced(boolean synced) {
-        this.synced = synced;
-    }
-
-    // ✅ Document ID generator to avoid duplicates
+    // Unique document ID to avoid creating duplicates in Firestore
     public String getIdHash() {
         return (name + "_" + date + "_" + section).replaceAll("\\s+", "_").toLowerCase();
     }

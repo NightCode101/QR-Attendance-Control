@@ -155,7 +155,7 @@ public class AdminActivity extends AppCompatActivity {
 
         List<String> years = new ArrayList<>();
         years.add("Year");
-        for (int i = 2023; i <= 2030; i++) years.add(String.valueOf(i));
+        for (int i = 2024; i <= 2050; i++) years.add(String.valueOf(i));
         ArrayAdapter<String> yearAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, years);
         yearAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         yearSpinner.setAdapter(yearAdapter);
@@ -242,7 +242,8 @@ public class AdminActivity extends AppCompatActivity {
                 "1A", "1B", "1C", "1D",
                 "2A", "2B", "2C",
                 "3A", "3B", "3C",
-                "4A", "4B", "4C"
+                "4A", "4B", "4C",
+                "COLSC", "TESTING PURPOSES"
         );
 
         for (String section : predefinedSections) {
@@ -414,9 +415,15 @@ public class AdminActivity extends AppCompatActivity {
             return;
         }
 
+        // Make section safe for filenames
         String safeSection = currentSection.replaceAll("[^a-zA-Z0-9]", "_");
-        String currentDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
-        String fileName = "BSIT_" + safeSection + "_" + currentDate + ".csv";
+
+        // Use selected date if available, otherwise today's date
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+        String datePart = (selectedDate != null) ? sdf.format(selectedDate.getTime()) : sdf.format(new Date());
+
+        // Final filename format
+        String fileName = "BSIT_" + safeSection + "_" + datePart + ".csv";
 
         Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
         intent.setType("text/csv");
@@ -433,17 +440,43 @@ public class AdminActivity extends AppCompatActivity {
         StringBuilder data = new StringBuilder();
         data.append("Name,Date,Time In AM,Time Out AM,Time In PM,Time Out PM,Section\n");
 
+        // Build export list based on section + date filter
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+        String selectedDateString = selectedDate != null ? sdf.format(selectedDate.getTime()) : null;
+
+        List<AttendanceRecord> exportList = new ArrayList<>();
         for (AttendanceRecord record : allRecords) {
-            if (record.getSection().equalsIgnoreCase(currentSection)) {
-                data.append(String.format("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n",
-                        record.getName(),
-                        record.getDate(),
-                        record.getTimeInAM(),
-                        record.getTimeOutAM(),
-                        record.getTimeInPM(),
-                        record.getTimeOutPM(),
-                        record.getSection()));
+            boolean sectionMatches = record.getSection().equalsIgnoreCase(currentSection);
+            boolean dateMatches = (selectedDateString == null) || selectedDateString.equals(record.getDate());
+
+            if (sectionMatches && dateMatches) {
+                exportList.add(record);
             }
+        }
+
+        if (exportList.isEmpty()) {
+            Toast.makeText(this, "No records found for export.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Add records to CSV
+        for (AttendanceRecord record : exportList) {
+            data.append(String.format("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n",
+                    record.getName(),
+                    record.getDate(),
+                    record.getTimeInAM(),
+                    record.getTimeOutAM(),
+                    record.getTimeInPM(),
+                    record.getTimeOutPM(),
+                    record.getSection()));
+        }
+
+        String fileName;
+        if (selectedDateString != null) {
+            fileName = "BSIT_" + currentSection + "_" + selectedDateString + ".csv";
+        } else {
+            String today = sdf.format(new Date());
+            fileName = "BSIT_" + currentSection + "_" + today + ".csv";
         }
 
         try (OutputStream outputStream = getContentResolver().openOutputStream(uri);
@@ -451,7 +484,7 @@ public class AdminActivity extends AppCompatActivity {
 
             writer.write(data.toString());
             writer.flush();
-            Toast.makeText(this, "Export successful", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Export successful: " + fileName, Toast.LENGTH_SHORT).show();
 
         } catch (Exception e) {
             Toast.makeText(this, "Export failed: " + e.getMessage(), Toast.LENGTH_LONG).show();

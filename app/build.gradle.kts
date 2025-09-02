@@ -13,7 +13,7 @@ android {
         minSdk = 29
         targetSdk = 34
         versionCode = 4
-        versionName = "4.0"
+        versionName = "4.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -42,6 +42,9 @@ android {
 dependencies {
     // QR Scanner
     implementation("com.journeyapps:zxing-android-embedded:4.3.0")
+
+    // Local Broadcast Manager
+    implementation("androidx.localbroadcastmanager:localbroadcastmanager:1.1.0")
 
     // Firebase BoM (manages versions automatically)
     implementation(platform("com.google.firebase:firebase-bom:34.0.0"))
