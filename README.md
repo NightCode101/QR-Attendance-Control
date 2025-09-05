@@ -109,9 +109,9 @@ Click below to grab the latest version:
 
 | Main Menu | Attendance History |
 |-----------|--------------------|
-| ![Main Menu](UI_Main.jpg) | ![History](UI_Attendance_List.jpg) |
+| ![Main Menu](UI_Home.jpg) | ![History](UI_History.jpg) |
 | Login Menu | Admin Panel |
-| ![Main Menu](UI_Login.jpg) | ![History](UI_Admin_Panel.jpg) |
+| ![Main Menu](UI_Login.jpg) | ![History](UI_Admin.jpg) |
 
 ---
 
@@ -120,8 +120,8 @@ Click below to grab the latest version:
 For bugs, questions, or feedback:
 
 **Jeylo Baoit**  
-📬 [baoitjerialle01@gmail.com](mailto:baoitjerialle01@gmail.com)  
-🌐 [Facebook Profile](https://fb.com/jeylo.tangaro)
+📬 [jeylodigitals@gmail.com](mailto:jeylodigitals@gmail.com)  
+🌐 [Facebook Profile](https://fb.com/stc.primo)
 
 ---
 
