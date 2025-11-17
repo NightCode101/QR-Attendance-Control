@@ -5,10 +5,8 @@
     android:id="@+id/mainRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background_light"
-    android:fitsSystemWindows="true"
-    android:paddingTop="16dp"
-    android:paddingBottom="16dp">
+    android:background="@color/md_theme_background"
+    android:fitsSystemWindows="true">
 
     <!-- App Title -->
     <TextView
@@ -16,12 +14,13 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/app_title"
-        android:textColor="@color/primary_accent"
-        android:textSize="20sp"
+        android:textColor="@color/md_theme_primary"
+        android:textSize="22sp"
         android:textStyle="bold"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="20dp" />
 
     <!-- Scrollable Content -->
     <androidx.core.widget.NestedScrollView
@@ -48,7 +47,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:background="@color/card_background"
+                android:background="@color/md_theme_surface"
                 android:padding="16dp"
                 android:elevation="2dp"
                 android:layout_marginBottom="24dp">
@@ -58,7 +57,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/qr_data"
-                    android:textColor="@color/text_secondary"
+                    android:textColor="@color/md_theme_secondary"
                     android:textSize="15sp" />
 
                 <TextView
@@ -66,7 +65,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/status_label"
-                    android:textColor="@color/text_secondary"
+                    android:textColor="@color/md_theme_onSurfaceVariant"
                     android:textSize="15sp"
                     android:layout_marginTop="4dp" />
 
@@ -75,7 +74,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/time_label"
-                    android:textColor="@color/text_secondary"
+                    android:textColor="@color/md_theme_onSurfaceVariant"
                     android:textSize="15sp"
                     android:layout_marginTop="4dp" />
 
@@ -84,7 +83,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/date_label"
-                    android:textColor="@color/text_secondary"
+                    android:textColor="@color/md_theme_onSurfaceVariant"
                     android:textSize="15sp"
                     android:layout_marginTop="4dp" />
             </LinearLayout>
@@ -103,7 +102,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="8dp"
                     android:text="BSIT"
-                    android:textColor="@color/secondary_accent"
+                    android:textColor="@color/md_theme_secondary"
                     android:textSize="20sp"
                     android:textStyle="bold" />
 
@@ -113,41 +112,45 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:padding="8dp"
-                    android:background="@drawable/edit_text_bg"
+                    android:background="@drawable/shape_rounded_edittext_bg"
                     android:spinnerMode="dropdown"
-                    android:textColor="@color/text_primary"
-                    android:textColorHint="@color/hint" />
+                    android:textColor="@color/md_theme_onSurface"
+                    android:textColorHint="@color/hint_text_color" />
             </LinearLayout>
 
             <!-- Admin Button -->
-            <Button
-            android:id="@+id/adminButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="24dp"
-            android:backgroundTint="@color/button_history"
-            android:text="@string/admin_panel"
-            android:textColor="@color/white" />
-        <!-- History Button -->
-            <Button
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/adminButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:paddingVertical="12dp"
+                android:text="@string/admin_panel"
+                android:backgroundTint="@color/md_theme_primary"
+                app:cornerRadius="8dp" />
+
+            <!-- History Button -->
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/historyButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                android:backgroundTint="@color/button_history"
+                android:paddingVertical="12dp"
                 android:text="@string/attendance_history"
-                android:textColor="@color/white" />
+                android:backgroundTint="@color/md_theme_primary"
+                app:cornerRadius="8dp" />
 
             <!-- Graph Button -->
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/graphButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                android:backgroundTint="@color/button_history"
+                android:paddingVertical="12dp"
                 android:text="Show Attendance Chart"
-                android:textColor="@color/white"
-                android:enabled="false"/>
+                android:backgroundTint="@color/md_theme_primary"
+                app:cornerRadius="8dp"
+                android:enabled="false" />
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
@@ -178,7 +181,7 @@
                 android:layout_weight="1"
                 android:gravity="center_horizontal"
                 android:text="AM"
-                android:textColor="@color/primary_accent"
+                android:textColor="@color/md_theme_primary"
                 android:textSize="14sp"
                 android:textStyle="bold" />
 
@@ -188,7 +191,7 @@
                 android:layout_weight="1"
                 android:gravity="center_horizontal"
                 android:text="PM"
-                android:textColor="@color/primary_accent"
+                android:textColor="@color/md_theme_primary"
                 android:textSize="14sp"
                 android:textStyle="bold" />
         </LinearLayout>
@@ -199,7 +202,7 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal">
 
-            <!-- PM RadioGroup -->
+            <!-- AM RadioGroup -->
             <RadioGroup
                 android:id="@+id/amRadioGroup"
                 android:layout_width="0dp"
@@ -214,7 +217,7 @@
                     android:layout_height="wrap_content"
                     android:buttonTint="@color/radio_checked"
                     android:text="Time In (AM)"
-                    android:textColor="@color/primary_accent" />
+                    android:textColor="@color/md_theme_primary" />
 
                 <RadioButton
                     android:id="@+id/radioTimeOutAM"
@@ -222,9 +225,10 @@
                     android:layout_height="wrap_content"
                     android:buttonTint="@color/radio_checked"
                     android:text="Time Out (AM)"
-                    android:textColor="@color/primary_accent" />
+                    android:textColor="@color/md_theme_primary" />
             </RadioGroup>
 
+            <!-- PM RadioGroup -->
             <RadioGroup
                 android:id="@+id/pmRadioGroup"
                 android:layout_width="0dp"
@@ -239,7 +243,7 @@
                     android:layout_height="wrap_content"
                     android:buttonTint="@color/radio_checked"
                     android:text="Time In (PM)"
-                    android:textColor="@color/primary_accent" />
+                    android:textColor="@color/md_theme_primary" />
 
                 <RadioButton
                     android:id="@+id/radioTimeOutPM"
@@ -247,23 +251,23 @@
                     android:layout_height="wrap_content"
                     android:buttonTint="@color/radio_checked"
                     android:text="Time Out (PM)"
-                    android:textColor="@color/primary_accent" />
+                    android:textColor="@color/md_theme_primary" />
             </RadioGroup>
         </LinearLayout>
     </LinearLayout>
 
     <!-- Scan Button -->
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/scanButton"
         android:layout_width="0dp"
         android:layout_height="96dp"
         android:text="@string/scan_qr"
         android:textSize="16sp"
-        android:backgroundTint="@color/button_scan"
-        android:textColor="@color/white"
+        android:backgroundTint="@color/md_theme_secondary"
         android:layout_marginStart="24dp"
         android:layout_marginEnd="24dp"
-        android:layout_marginBottom="5dp"
+        android:layout_marginBottom="8dp"
+        app:cornerRadius="12dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
