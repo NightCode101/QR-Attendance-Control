@@ -1,40 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Background and surface colors -->
-    <color name="background_light">#f3ede2</color>
-    <color name="card_background">#ffffff</color>
+    <color name="md_theme_primary">#e59e02</color>
+    <color name="md_theme_onPrimary">#FFFFFF</color>
 
-    <!-- Accent/primary palette -->
-    <color name="primary_accent">#e59e02</color>
-    <color name="secondary_accent">#fd7f09</color>
+    <color name="md_theme_secondary">#fd7f09</color>
+    <color name="md_theme_onSecondary">#FFFFFF</color>
 
-    <!-- Button & interactive elements -->
-    <color name="button_scan">#fd7f09</color>
-    <color name="button_history">#e59e02</color>
-    <color name="button_neutral">#d7ccc8</color>
+    <color name="md_theme_background">#f3ede2</color>
+    <color name="md_theme_onBackground">#212121</color>
 
-    <!-- Text colors -->
-    <color name="text_primary">#212121</color>
-    <color name="text_secondary">#5d5d5d</color>
-    <color name="text_black">#000000</color>
+    <color name="md_theme_surface">#ffffff</color>
+    <color name="md_theme_onSurface">#212121</color>
+    <color name="md_theme_onSurfaceVariant">#5d5d5d</color>
+
+    <color name="md_theme_error">#D32F2F</color>
+    <color name="md_theme_onError">#FFFFFF</color>
+
+    <color name="md_theme_outline">#cccccc</color>
+
+
     <color name="white">#FFFFFF</color>
     <color name="black">#FF000000</color>
-
-    <!-- Input fields -->
-    <color name="edit_text_bg">#ffffff</color>
-    <color name="edit_text_text">#212121</color>
-    <color name="hint_dark">#888888</color>
-    <color name="hint">#fd7f09</color>
-
-    <!-- RadioButton colors -->
-    <color name="radio_unchecked">#cccccc</color>
-    <!--<color name="radio_checked">#fd7f09</color>-->
-    <color name="radio_checked">#e59e02</color>
-
-
-    <!-- Misc colors -->
-    <color name="green_primary">#4CAF50</color>
     <color name="green_dark">#2E7D32</color>
     <color name="blue_primary">#1976D2</color>
-    <color name="red_primary">#D32F2F</color>
+
+    <color name="radio_checked">#e59e02</color>
+    <color name="hint_text_color">#fd7f09</color>
+
+    <color name="status_dot_synced">#4CAF50</color>
+    <color name="toast_background">#A9E59E02</color>
 </resources>

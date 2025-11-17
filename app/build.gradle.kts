@@ -47,7 +47,7 @@ dependencies {
     implementation("androidx.localbroadcastmanager:localbroadcastmanager:1.1.0")
 
     // Firebase BoM (manages versions automatically)
-    implementation(platform("com.google.firebase:firebase-bom:34.0.0"))
+    implementation(platform("com.google.firebase:firebase-bom:34.4.0"))
 
     // Firebase (no versions when using BoM)
     implementation("com.google.firebase:firebase-analytics")
@@ -61,6 +61,8 @@ dependencies {
     implementation(libs.navigation.fragment)
     implementation(libs.navigation.ui)
 
+    implementation("androidx.appcompat:appcompat:1.6.1")
+
     // Testing
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
@@ -71,4 +73,6 @@ dependencies {
 
     // Swipe to Refresh
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
+
+    implementation(libs.appcompat)
 }

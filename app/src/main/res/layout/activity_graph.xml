@@ -2,7 +2,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background_light"
+    android:background="@color/md_theme_background"
     android:padding="16dp">
 
     <Spinner
@@ -36,16 +36,17 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/buttonFirstYear"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"
             android:text="1st Year"
-            android:backgroundTint="@color/primary_accent"
-            android:textColor="@color/white"/>
+            android:paddingVertical="12dp"
+            app:cornerRadius="8dp"
+            android:backgroundTint="@color/md_theme_primary"/>
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/buttonSecondYear"
             android:layout_width="0dp"
             android:layout_weight="1"
@@ -53,26 +54,30 @@
             android:text="2nd Year"
             android:layout_marginStart="8dp"
             android:layout_marginEnd="8dp"
-            android:backgroundTint="@color/primary_accent"
-            android:textColor="@color/white"/>
+            android:paddingVertical="12dp"
+            app:cornerRadius="8dp"
+            android:backgroundTint="@color/md_theme_primary"/>
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/buttonThirdYear"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"
             android:text="3rd Year"
-            android:backgroundTint="@color/primary_accent"
-            android:textColor="@color/white"/>
+            android:paddingVertical="12dp"
+            app:cornerRadius="8dp"
+            android:backgroundTint="@color/md_theme_primary"/>
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/buttonFourthYear"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"
             android:text="4th Year"
-            android:backgroundTint="@color/primary_accent"
-            android:textColor="@color/white"/>
+            android:paddingVertical="12dp"
+            app:cornerRadius="8dp"
+            android:layout_marginStart="8dp"
+            android:backgroundTint="@color/md_theme_primary"/>
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

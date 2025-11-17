@@ -5,12 +5,12 @@
     android:id="@+id/historyRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background_light"
+    android:background="@color/md_theme_background"
     android:fitsSystemWindows="true"
     android:paddingTop="16dp"
     android:paddingBottom="16dp">
 
-    <!-- Start guideline at 24dp -->
+    <!-- Start guideline -->
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guideline_start"
         android:layout_width="wrap_content"
@@ -18,7 +18,7 @@
         android:orientation="vertical"
         app:layout_constraintGuide_begin="24dp" />
 
-    <!-- End guideline at 24dp -->
+    <!-- End guideline -->
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guideline_end"
         android:layout_width="wrap_content"
@@ -34,7 +34,7 @@
         android:text="@string/attendance_history"
         android:textSize="20sp"
         android:textStyle="bold"
-        android:textColor="@color/primary_accent"
+        android:textColor="@color/md_theme_primary"
         android:gravity="center"
         android:paddingBottom="4dp"
         app:layout_constraintTop_toTopOf="parent"
@@ -48,16 +48,16 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:layout_marginBottom="8dp"
-        android:background="@drawable/search_edittext_bg"
+        android:background="@drawable/shape_rounded_edittext_bg"
         android:hint="@string/hint_search_name"
         android:padding="12dp"
-        android:textColor="@color/text_primary"
-        android:textColorHint="@color/hint"
+        android:textColor="@color/md_theme_onSurface"
+        android:textColorHint="@color/hint_text_color"
         app:layout_constraintTop_toBottomOf="@id/historyTitle"
         app:layout_constraintStart_toStartOf="@id/guideline_start"
         app:layout_constraintEnd_toEndOf="@id/guideline_end" />
 
-    <!-- Pull-to-refresh wrapper -->
+    <!-- Pull-to-refresh with RecyclerView -->
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swipeRefreshLayout"
         android:layout_width="0dp"
@@ -67,34 +67,15 @@
         app:layout_constraintStart_toStartOf="@id/guideline_start"
         app:layout_constraintEnd_toEndOf="@id/guideline_end">
 
-        <!-- Scrollable list -->
-        <ScrollView
-            android:id="@+id/historyScroll"
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerViewHistory"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:fillViewport="true"
-            android:overScrollMode="ifContentScrolls">
+            android:clipToPadding="false"
+            android:scrollbars="vertical"
+            android:background="@color/md_theme_surface"
+            android:padding="8dp" />
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:background="@color/card_background"
-                android:padding="16dp"
-                android:elevation="2dp"
-                android:layout_marginTop="8dp"
-                android:layout_marginBottom="8dp">
-
-                <LinearLayout
-                    android:id="@+id/historyContainer"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:showDividers="middle"
-                    android:divider="@drawable/divider"
-                    android:dividerPadding="8dp" />
-            </LinearLayout>
-        </ScrollView>
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
     <!-- Total Count -->
@@ -104,7 +85,7 @@
         android:layout_height="wrap_content"
         android:text="Total: 0"
         android:textSize="16sp"
-        android:textColor="@color/primary_accent"
+        android:textColor="@color/md_theme_primary"
         android:gravity="center"
         android:paddingTop="4dp"
         android:paddingBottom="4dp"
@@ -112,21 +93,22 @@
         app:layout_constraintStart_toStartOf="@id/guideline_start"
         app:layout_constraintEnd_toEndOf="@id/guideline_end" />
 
-    <!-- Sync Button -->
-    <Button
+    <!-- Upload Button -->
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/syncButton"
         android:layout_width="0dp"
-        android:layout_height="48dp"
-        android:text="Sync"
-        android:backgroundTint="@color/button_history"
-        android:textColor="@color/white"
+        android:layout_height="wrap_content"
+        android:text="Upload Attendance"
+        android:backgroundTint="@color/md_theme_primary"
+        android:paddingVertical="12dp"
+        app:cornerRadius="8dp"
         android:layout_marginTop="8dp"
         android:layout_marginBottom="8dp"
         app:layout_constraintTop_toBottomOf="@id/totalTextView"
         app:layout_constraintStart_toStartOf="@id/guideline_start"
         app:layout_constraintEnd_toEndOf="@id/guideline_end" />
 
-    <!-- Buttons row (Export + Clear) -->
+    <!-- Buttons Row (Export + Clear) -->
     <LinearLayout
         android:id="@+id/buttonRow"
         android:layout_width="0dp"
@@ -139,24 +121,26 @@
         app:layout_constraintStart_toStartOf="@id/guideline_start"
         app:layout_constraintEnd_toEndOf="@id/guideline_end">
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/exportCSVButton"
             android:layout_width="0dp"
-            android:layout_height="48dp"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="@string/export_csv"
-            android:backgroundTint="@color/primary_accent"
-            android:textColor="@color/white"
+            android:backgroundTint="@color/md_theme_primary"
+            android:paddingVertical="12dp"
+            app:cornerRadius="8dp"
             android:layout_marginEnd="8dp" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/clearHistoryButton"
             android:layout_width="0dp"
-            android:layout_height="48dp"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="@string/clear_history"
-            android:backgroundTint="@color/secondary_accent"
-            android:textColor="@color/white"
+            android:backgroundTint="@color/md_theme_secondary"
+            android:paddingVertical="12dp"
+            app:cornerRadius="8dp"
             android:layout_marginStart="8dp" />
     </LinearLayout>
 

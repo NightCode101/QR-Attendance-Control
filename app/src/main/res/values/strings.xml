@@ -5,7 +5,7 @@
     <string name="app_title">CICS QR Attendance</string>
 
     <!-- Labels -->
-    <string name="qr_data">QR Data: —</string>
+    <string name="qr_data">Name: —</string>
     <string name="status_label">Status: —</string>
     <string name="time_label">Time: —</string>
     <string name="date_label">Date: —</string>
