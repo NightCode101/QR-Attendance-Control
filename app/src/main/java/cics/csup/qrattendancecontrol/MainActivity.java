@@ -1,8 +1,9 @@
 package cics.csup.qrattendancecontrol;
 
-// 1. ADDED: Make sure this import is here
+import androidx.annotation.OptIn;
+import androidx.camera.core.ExperimentalGetImage;
 import androidx.core.view.WindowInsetsCompat;
-
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
@@ -21,8 +22,8 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.result.ActivityResultLauncher; // 2. ADDED: Modern API
-import androidx.activity.result.contract.ActivityResultContracts; // 3. ADDED: Modern API
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.view.ViewCompat;
@@ -34,8 +35,7 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.firestore.Transaction;
-import com.google.zxing.integration.android.IntentIntegrator;
-import com.google.zxing.integration.android.IntentResult;
+import com.google.android.material.snackbar.Snackbar;
 
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -43,9 +43,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -70,17 +68,26 @@ public class MainActivity extends AppCompatActivity {
     private final SimpleDateFormat displayDateFormat = new SimpleDateFormat("MMMM d, yyyy", Locale.getDefault());
     private final SimpleDateFormat storageDateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
 
-    // 4. CHANGED: Modern way to handle Activity Results
+    // 4. FINALIZED: ActivityResultLauncher
     private final ActivityResultLauncher<Intent> qrScannerLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
-                IntentResult scanResult = IntentIntegrator.parseActivityResult(result.getResultCode(), result.getData());
-                if (scanResult != null) {
-                    if (scanResult.getContents() == null) {
-                        showCenteredToast("No QR code detected.");
+                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                    String qrContent = result.getData().getStringExtra("SCAN_RESULT");
+
+                    if (qrContent == null) {
+                        showConfirmationDialog("Scan Failed", "No QR code was returned.");
                     } else {
-                        // Success! Process the scan.
-                        handleScanResult(scanResult.getContents());
+                        // --- FINAL REFACTOR: Get the friendly name and pass it ---
+                        RadioButton selectedRadioButton = findViewById(
+                                amRadioGroup.getCheckedRadioButtonId() != -1 ?
+                                        amRadioGroup.getCheckedRadioButtonId() :
+                                        pmRadioGroup.getCheckedRadioButtonId()
+                        );
+                        String timeSlotFriendlyName = selectedRadioButton.getText().toString();
+
+                        handleScanResult(qrContent, timeSlotFriendlyName);
+                        // --- END OF FIX ---
                     }
                 }
             }
@@ -126,9 +133,6 @@ public class MainActivity extends AppCompatActivity {
         setupRadioGroupLogic();
         applyWindowInsetPadding();
 
-        // 5. FUTURE NOTE: NetworkChangeReceiver is an older API.
-        // For a future update, consider migrating this to WorkManager
-        // for more reliable, battery-efficient background syncs.
         networkChangeReceiver = new NetworkChangeReceiver(this::syncUnsyncedRecords);
         registerReceiver(networkChangeReceiver, new android.content.IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
 
@@ -145,7 +149,7 @@ public class MainActivity extends AppCompatActivity {
                 "COLSC", "TESTING PURPOSES"
         );
 
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, sections) {
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, R.layout.custom_spinner_item, sections) {
             @Override
             public boolean isEnabled(int position) {
                 return position != 0; // Disable "Select a Section"
@@ -159,7 +163,7 @@ public class MainActivity extends AppCompatActivity {
                 return view;
             }
         };
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        adapter.setDropDownViewResource(R.layout.custom_spinner_dropdown_item);
         sectionSpinner.setAdapter(adapter);
 
         String lastSection = sharedPreferences.getString(KEY_SECTION, "Select a Section");
@@ -180,7 +184,6 @@ public class MainActivity extends AppCompatActivity {
 
     // ------------------- RADIO BUTTONS -------------------
 
-    // 6. CHANGED: This is the robust logic that prevents listeners from fighting
     private void setupRadioGroupLogic() {
 
         amListener = (group, checkedId) -> {
@@ -207,23 +210,24 @@ public class MainActivity extends AppCompatActivity {
 
     // ------------------- QR SCANNER -------------------
 
+    @OptIn(markerClass = ExperimentalGetImage.class)
     private void startQRScanner() {
         hideKeyboard();
 
-        // Find the selected field (e.g., "time_in_am")
         String timeSlotField = getSelectedTimeSlotField();
         if (timeSlotField == null) {
-            showCenteredToast("Please select a time slot.");
+            // CHANGED: Use Snackbar
+            showSnackbar("Please select a time slot.");
             return;
         }
 
         String section = sectionSpinner.getSelectedItem().toString();
         if ("Select a Section".equals(section)) {
-            showCenteredToast("Please select your section before scanning.");
+            // CHANGED: Use Snackbar
+            showSnackbar("Please select your section before scanning.");
             return;
         }
 
-        // Save the chosen section for next time
         sharedPreferences.edit().putString(KEY_SECTION, section).apply();
 
         // Get the friendly name (e.g., "Time In (AM)")
@@ -234,40 +238,43 @@ public class MainActivity extends AppCompatActivity {
         );
         String timeSlotFriendlyName = selectedRadioButton.getText().toString();
 
-        IntentIntegrator integrator = new IntentIntegrator(MainActivity.this);
-        integrator.setPrompt("Scan QR Code\n(" + timeSlotFriendlyName + ")");
-        integrator.setBeepEnabled(true);
-        integrator.setOrientationLocked(true);
-        integrator.setCaptureActivity(QRScanActivity.class);
+        // --- THIS IS THE NEW LAUNCH LOGIC ---
+        Intent intent = new Intent(this, CustomScanActivity.class);
 
-        // 7. CHANGED: Launch the modern activity launcher
-        qrScannerLauncher.launch(integrator.createScanIntent());
+        // CHANGED: We now send two pieces of text
+        intent.putExtra("SCAN_TITLE", "Scan Student QR Code");
+        intent.putExtra("SCAN_INDICATOR", "(" + timeSlotFriendlyName + ")");
+
+        // Launch the activity using our new launcher
+        qrScannerLauncher.launch(intent);
     }
 
-    // 8. REMOVED: onActivityResult is now handled by qrScannerLauncher
-
-    // 9. REPLACED: Final version of handleScanResult
-    private void handleScanResult(String qrContent) {
+    // REPLACED: Final version of handleScanResult (now accepts two args)
+    private void handleScanResult(String qrContent, String timeSlotFriendlyName) {
         qrContent = qrContent.trim();
 
         // --- 1. Split by the "|" character ---
-        // We must use "\\|" because "|" is a special character in regex
         String[] parts = qrContent.split("\\|");
 
         String studentID;
         String studentName;
 
         if (parts.length < 2) {
-            // BACKWARD COMPATIBILITY: No "|" found, assume old QR code
-            studentID = qrContent;
-            studentName = qrContent; // Use the ID as the name
-            qrDataText.setText("QR Data: " + studentName);
-            Toast.makeText(this, "Old QR code scanned.", Toast.LENGTH_SHORT).show();
+            // BACKWARD COMPATIBILITY: No "|" found
+            if (qrContent.contains("-") || qrContent.matches(".*\\d.*")) {
+                studentID = qrContent;
+                studentName = qrContent;
+                qrDataText.setText("Name: " + studentName);
+                showConfirmationDialog("Old QR Code Scanned", "Please change the QR Code to the new format.");
+            } else {
+                showConfirmationDialog("Invalid QR Code", "The code should contain:\nID Number & Name.\n\nExample:\nID Number: 24-0000\nName: BAOIT, JEYLO T.\n\nPlease generate a new one.");
+                return;
+            }
         } else {
             // NEW QR CODE: "20-06281|BAOIT, JEYLO T."
-            studentID = parts[0];   // "20-06281"
-            studentName = parts[1]; // "BAOIT, JEYLO T."
-            qrDataText.setText("QR Data: " + studentName); // Show the friendly name
+            studentID = parts[0];
+            studentName = parts[1];
+            qrDataText.setText("Name: " + studentName);
         }
 
         // --- End of new logic ---
@@ -283,31 +290,27 @@ public class MainActivity extends AppCompatActivity {
 
         String field = getSelectedTimeSlotField();
         if (field == null) {
-            showCenteredToast("Please select a time slot.");
+            showSnackbar("Please select a time slot.");
             return;
         }
         statusText.setText("Status: " + field.replace("_", " ").toUpperCase(Locale.getDefault()));
 
-
         // --- 3. UPDATE THE LOGIC (FOR THE APP) ---
 
-        // CHANGED: Use the new getRecordByStudentID
         AttendanceRecord localRecord = db.getRecordByStudentID(studentID, currentDateStorage, section);
 
         if (!validateScan(field, localRecord)) {
             return; // Validation failed
         }
 
-        // CHANGED: Pass BOTH the ID and the Name to the database
         db.markDetailedAttendance(studentID, studentName, currentDateStorage, section, field, currentTimeDisplay);
 
-        // Show success and trigger sync
-        showCenteredToast("Attendance recorded for " + studentName);
+        // --- FINAL DIALOG MESSAGE ---
+        showConfirmationDialog("Success", "Attendance recorded for:\n\n" + "Name: " +studentName + "\nID Number: " + studentID + "\nSlot: " + timeSlotFriendlyName);
 
         syncUnsyncedRecords();
     }
 
-    // 10. ADDED: Helper to get the selected field
     private String getSelectedTimeSlotField() {
         int selectedId = amRadioGroup.getCheckedRadioButtonId();
         if (selectedId == -1) {
@@ -322,70 +325,38 @@ public class MainActivity extends AppCompatActivity {
         return null; // Nothing selected
     }
 
-    // 11. ADDED: Refactored validation logic
     private boolean validateScan(String field, AttendanceRecord record) {
         if (record == null) {
             return true; // No record exists, so any scan is valid
         }
 
-        // Check if a time is already recorded for this slot
+        // --- RULE 1: Check if slot is already filled ---
         String existing = record.getFieldValue(field);
         if (existing != null && !existing.equals("-")) {
-            showCenteredToast("That time slot is already filled.");
+            showConfirmationDialog("Scan Error", "That time slot is already scanned please double check.");
             return false;
         }
 
-        // Check for logical errors (e.g., timing out before timing in)
-        if (field.equals("time_out_am") && record.getFieldValue("time_in_am").equals("-")) {
-            showCenteredToast("You must time in AM before time out AM.");
+        // --- RULE 2 (NEW): Check for scanning "IN" after "OUT" ---
+        if (field.equals("time_in_am") && !record.getFieldValue("time_out_am").equals("-")) {
+            showConfirmationDialog("Scan Error", "You cannot Time In AM\nYou have already Timed Out AM.");
             return false;
         }
-        if (field.equals("time_out_pm") && record.getFieldValue("time_in_pm").equals("-")) {
-            showCenteredToast("You must time in PM before time out PM.");
+        if (field.equals("time_in_pm") && !record.getFieldValue("time_out_pm").equals("-")) {
+            showConfirmationDialog("Scan Error", "You cannot Time In PM\nYou have already Timed Out PM.");
             return false;
         }
 
-        // Check for cross-session errors (e.g., AM scan during PM)
+        // --- RULE 3: Check for scanning "AM" after "PM" ---
         boolean hasPmRecord = !record.getFieldValue("time_in_pm").equals("-") ||
                 !record.getFieldValue("time_out_pm").equals("-");
 
         if (field.contains("am") && hasPmRecord) {
-            showCenteredToast("Cannot record AM attendance after PM session started.");
+            showConfirmationDialog("Scan Error", "Cannot record AM attendance.\nPM attendance has already started.");
             return false;
         }
 
         return true;
-    }
-
-    // 12. ADDED: Refactored Firestore logic
-    private void syncRecordToFirestore(String name, String date, String section, String field, String time) {
-        String docId = name.replaceAll("[^a-zA-Z0-9]", "_")
-                + "_" + date + "_" + section;
-
-        DocumentReference docRef = firestore.collection("attendance_records").document(docId);
-
-        // Run a transaction to safely merge data
-        // This prevents overwriting data if two devices scan at the same time
-        firestore.runTransaction((Transaction.Function<Void>) transaction -> {
-                    DocumentSnapshot snapshot = transaction.get(docRef);
-                    Map<String, Object> data = snapshot.getData();
-
-                    // Check if field is empty or doesn't exist
-                    if (data == null || !data.containsKey(field) || data.get(field) == null || data.get(field).equals("-")) {
-                        Map<String, Object> uploadData = new HashMap<>();
-                        uploadData.put("name", name);
-                        uploadData.put("date", date);
-                        uploadData.put("section", section);
-                        uploadData.put(field, time);
-                        // Use merge to add/update fields without overwriting others
-                        transaction.set(docRef, uploadData, SetOptions.merge());
-                    }
-                    return null;
-                }).addOnSuccessListener(unused -> showCenteredToast("Attendance recorded successfully"))
-                .addOnFailureListener(e -> {
-                    showCenteredToast("Sync failed — will retry when online.");
-                    e.printStackTrace();
-                });
     }
 
     // ------------------- BACKGROUND SYNC -------------------
@@ -397,7 +368,7 @@ public class MainActivity extends AppCompatActivity {
         if (unsyncedRecords.isEmpty()) return;
 
         for (AttendanceRecord record : unsyncedRecords) {
-            String docId = record.getIdHash(); // Use the hash from the model
+            String docId = record.getIdHash();
             DocumentReference docRef = firestore.collection("attendance_records").document(docId);
 
             firestore.runTransaction((Transaction.Function<Void>) transaction -> {
@@ -407,7 +378,6 @@ public class MainActivity extends AppCompatActivity {
 
                         Map<String, Object> uploadData = new HashMap<>();
 
-                        // Check each field before adding it to the upload batch
                         if (shouldSyncField(existing, "time_in_am", record.getTimeInAM()))
                             uploadData.put("time_in_am", record.getTimeInAM());
                         if (shouldSyncField(existing, "time_out_am", record.getTimeOutAM()))
@@ -418,8 +388,8 @@ public class MainActivity extends AppCompatActivity {
                             uploadData.put("time_out_pm", record.getTimeOutPM());
 
                         if (!uploadData.isEmpty()) {
-                            // Only upload if there's something new
                             uploadData.put("name", record.getName());
+                            uploadData.put("studentID", record.getStudentID());
                             uploadData.put("date", record.getDate());
                             uploadData.put("section", record.getSection());
                             transaction.set(docRef, uploadData, SetOptions.merge());
@@ -431,28 +401,11 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    // 13. ADDED: Helper for sync logic
     private boolean shouldSyncField(Map<String, Object> existing, String key, String localValue) {
         if (localValue == null || localValue.equals("-")) {
-            return false; // Don't sync empty local values
+            return false;
         }
-        // Sync if Firestore doesn't have the key OR if Firestore's value is empty/null
         return !existing.containsKey(key) || existing.get(key) == null || existing.get(key).equals("-");
-    }
-
-    // ------------------- HIDDEN RECORD UTILS -------------------
-
-    private String makeHiddenKey(String name, String date) {
-        return name.trim().toLowerCase() + "_" + date;
-    }
-
-    private void removeHiddenRecord(String name, String date) {
-        // This is tied to the old SharedPreferences logic.
-        // It's kept here to un-hide records scanned in MainActivity
-        SharedPreferences prefs = getSharedPreferences(HIDDEN_PREFS, MODE_PRIVATE);
-        Set<String> keys = new HashSet<>(prefs.getStringSet(HIDDEN_KEY, new HashSet<>()));
-        keys.remove(makeHiddenKey(name, date));
-        prefs.edit().putStringSet(HIDDEN_KEY, new HashSet<>(keys)).apply();
     }
 
     // ------------------- UTILITY METHODS -------------------
@@ -472,7 +425,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    // 14. CHANGED: Fixed with the correct import
     private void applyWindowInsetPadding() {
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content), (view, insets) -> {
             int top = insets.getInsets(WindowInsetsCompat.Type.systemBars()).top;
@@ -488,6 +440,26 @@ public class MainActivity extends AppCompatActivity {
         if (networkChangeReceiver != null) unregisterReceiver(networkChangeReceiver);
     }
 
+    // ------------------- UI HELPERS -------------------
+
+    /**
+     * Displays a simple confirmation dialog (popup) instead of a Toast.
+     */
+    private void showConfirmationDialog(String title, String message) {
+        // Use ContextThemeWrapper to apply your app's theme
+        AlertDialog.Builder builder = new AlertDialog.Builder(
+                new androidx.appcompat.view.ContextThemeWrapper(this, R.style.Theme_QRAttendanceControl)
+        );
+
+        builder.setTitle(title)
+                .setMessage(message)
+                .setPositiveButton("OK", (dialog, which) -> {
+                    dialog.dismiss(); // Just close the dialog
+                })
+                .setCancelable(false) // User must press OK
+                .show();
+    }
+
     private void showCenteredToast(String message) {
         Toast t = Toast.makeText(this, message, Toast.LENGTH_LONG);
         t.setGravity(Gravity.CENTER, 0, 0);
@@ -498,5 +470,19 @@ public class MainActivity extends AppCompatActivity {
         Date now = new Date();
         timeText.setText("Time: " + displayTimeFormat.format(now));
         dateText.setText("Date: " + displayDateFormat.format(now));
+    }
+
+    /**
+     * Displays a non-stacking Snackbar message.
+     */
+    private void showSnackbar(String message) {
+        // We need to find a root view to attach the Snackbar to.
+        View rootView = findViewById(android.R.id.content);
+        if (rootView != null) {
+            Snackbar.make(rootView, message, Snackbar.LENGTH_LONG).show();
+        } else {
+            // Fallback to a toast if the view isn't ready
+            showCenteredToast(message);
+        }
     }
 }

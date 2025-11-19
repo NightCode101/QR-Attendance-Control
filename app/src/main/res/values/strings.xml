@@ -1,8 +1,8 @@
 <resources>
 
     <!-- App Info -->
-    <string name="app_name">QR Attendance Control</string>
-    <string name="app_title">CICS QR Attendance</string>
+    <string name="app_name">CICS QR Attendance Control</string>
+    <string name="app_title">CICS QR Attendance Control</string>
 
     <!-- Labels -->
     <string name="qr_data">Name: —</string>
@@ -67,6 +67,30 @@
     <string name="password">Password</string>
     <string name="remember_me">Remember Me</string>
     <string name="login">Login</string>
+
+    <string name="button_show_chart">Show Attendance Chart</string>
+    <string name="time_am">AM</string>
+    <string name="time_pm">PM</string>
+    <string name="radio_time_in_am">Time In (AM)</string>
+    <string name="radio_time_out_am">Time Out (AM)</string>
+    <string name="radio_time_in_pm">Time In (PM)</string>
+    <string name="radio_time_out_pm">Time Out (PM)</string>
+
+    <string name="admin_panel_title">Admin Attendance Panel</string>
+    <string name="admin_label_section">Section:</string>
+    <string name="admin_label_total">Total Records: 0</string>
+    <string name="admin_button_logout">Logout</string>
+
+    <string name="graph_button_1y">1st Year</string>
+    <string name="graph_button_2y">2nd Year</string>
+    <string name="graph_button_3y">3rd Year</string>
+    <string name="graph_button_4y">4th Year</string>
+
+    <string name="history_label_total">Total: 0</string>
+    <string name="history_button_upload">Upload Attendance</string>
+
+    <string name="scanner_title">Scan Student QR Code</string>
+    <string name="scanner_button_flash">Flash</string>
 
     <!-- Toast -->
     <string name="created_by">💗 Created by: Jeylo Baoit</string>
