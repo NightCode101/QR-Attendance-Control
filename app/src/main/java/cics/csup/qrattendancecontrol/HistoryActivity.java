@@ -53,7 +53,6 @@ import java.util.function.Consumer;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.OutputStreamWriter;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -83,10 +82,7 @@ public class HistoryActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
-
-        // --- ADDED: Force light mode to fix dark dialogs/spinners ---
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
-        // ---
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_history);
@@ -114,13 +110,12 @@ public class HistoryActivity extends AppCompatActivity {
             swipeRefreshLayout.setRefreshing(false);
         });
 
-        loadHistory(null); // Load all visible records initially
+        loadHistory(null);
         setupNetworkCallback();
         fetchAndCacheAdminPassword();
 
         syncButton.setOnClickListener(v -> {
             if (!checkInternetConnection()) {
-                // CHANGED: Use Snackbar
                 showSnackbar("No internet connection.");
                 return;
             }
@@ -129,7 +124,6 @@ public class HistoryActivity extends AppCompatActivity {
 
         clearHistoryButton.setOnClickListener(v -> {
             if (adapter.getItemCount() == 0) {
-                // CHANGED: Use Snackbar
                 showSnackbar("No attendance to clear.");
                 return;
             }
@@ -139,7 +133,6 @@ public class HistoryActivity extends AppCompatActivity {
                     .setPositiveButton("Delete", (d, w) -> {
                         dbHelper.hideAllVisibleRecords();
                         loadHistory(searchNameEditText.getText().toString());
-                        // CHANGED: Use Snackbar
                         showSnackbar("All attendance records are deleted");
                     })
                     .setNegativeButton("Cancel", null)
@@ -153,7 +146,6 @@ public class HistoryActivity extends AppCompatActivity {
                         if (ok) {
                             dbHelper.clearAllAttendance();
                             loadHistory(null);
-                            // CHANGED: Use Snackbar
                             showSnackbar("All local attendance records are deleted.");
                         }
                     });
@@ -162,7 +154,6 @@ public class HistoryActivity extends AppCompatActivity {
 
         exportCSVButton.setOnClickListener(v -> {
             if (adapter.getItemCount() == 0) {
-                // CHANGED: Use Snackbar
                 showSnackbar("No attendance data to export.");
             } else {
                 showExportOptions();
@@ -193,16 +184,12 @@ public class HistoryActivity extends AppCompatActivity {
         }
     }
 
-    // ----------------------- Load & Filter -----------------------
-
     private void loadHistory(String nameFilter) {
         List<AttendanceRecord> records = dbHelper.getVisibleAttendanceRecords(nameFilter);
         adapter.setList(records);
         totalTextView.setText("Total: " + records.size());
         updateButtonStates();
     }
-
-    // ----------------------- Swipe Delete -----------------------
 
     private void attachSwipeHandler() {
         ItemTouchHelper.SimpleCallback callback = new ItemTouchHelper.SimpleCallback(0,
@@ -222,7 +209,6 @@ public class HistoryActivity extends AppCompatActivity {
                             dbHelper.setRecordHidden(rec.getId(), true);
                             adapter.removeItemUIOnly(pos);
                             totalTextView.setText("Total: " + adapter.getItemCount());
-                            // CHANGED: Use Snackbar
                             showSnackbar("Attendance Deleted");
                         })
                         .setNegativeButton("Cancel", (d, w) -> adapter.notifyItemChanged(pos))
@@ -233,8 +219,6 @@ public class HistoryActivity extends AppCompatActivity {
         new ItemTouchHelper(callback).attachToRecyclerView(recyclerView);
     }
 
-    // ----------------------- Admin Password Logic -----------------------
-
     private void fetchAndCacheAdminPassword() {
         FirebaseFirestore.getInstance().collection("config").document("admin")
                 .get()
@@ -242,8 +226,7 @@ public class HistoryActivity extends AppCompatActivity {
                     if (doc.exists()) {
                         String pw = doc.getString("password");
                         if (pw != null && !pw.isEmpty()) {
-                            getSharedPreferences(ADMIN_PREFS, MODE_PRIVATE)
-                                    .edit().putString(ADMIN_KEY, pw).apply();
+                            getSharedPreferences(ADMIN_PREFS, MODE_PRIVATE).edit().putString(ADMIN_KEY, pw).apply();
                             Log.d("ADMIN", "Admin password cached.");
                         }
                     }
@@ -251,7 +234,6 @@ public class HistoryActivity extends AppCompatActivity {
                 .addOnFailureListener(e -> Log.e("ADMIN", "Failed to fetch admin password: " + e.getMessage()));
     }
 
-    // --- CHANGED: This method is now much simpler ---
     private void promptAdminPasswordAndPerform(String title, String message, boolean isClear, Consumer<Boolean> callback) {
         LinearLayout container = new LinearLayout(this);
         container.setOrientation(LinearLayout.VERTICAL);
@@ -259,7 +241,6 @@ public class HistoryActivity extends AppCompatActivity {
 
         TextView tv = new TextView(this);
         tv.setText(message);
-        // tv.setTextColor(Color.DKGRAY); // Let theme handle text color
         container.addView(tv);
 
         EditText input = new EditText(this);
@@ -269,11 +250,10 @@ public class HistoryActivity extends AppCompatActivity {
         container.addView(input);
 
         TextView errorText = new TextView(this);
-        errorText.setTextColor(getResources().getColor(R.color.md_theme_error)); // Use theme color
+        errorText.setTextColor(getResources().getColor(R.color.md_theme_error));
         errorText.setVisibility(View.GONE);
         container.addView(errorText);
 
-        // CHANGED: Removed the ugly ContextThemeWrapper. It will now use the app theme.
         AlertDialog dialog = new AlertDialog.Builder(this)
                 .setTitle(title)
                 .setView(container)
@@ -283,10 +263,6 @@ public class HistoryActivity extends AppCompatActivity {
 
         dialog.setOnShowListener(d -> {
             Button ok = dialog.getButton(DialogInterface.BUTTON_POSITIVE);
-
-            // CHANGED: Removed manual text color styling
-            // ok.setTextColor(Color.parseColor("#e59e02"));
-
             ok.setOnClickListener(v -> {
                 String entered = input.getText().toString();
                 SharedPreferences prefs = getSharedPreferences(ADMIN_PREFS, MODE_PRIVATE);
@@ -309,12 +285,9 @@ public class HistoryActivity extends AppCompatActivity {
         dialog.show();
     }
 
-    // ----------------------- Firestore Sync -----------------------
-
     private void syncOfflineDataToFirestore() {
         List<AttendanceRecord> unsynced = dbHelper.getUnsyncedRecords();
         if (unsynced.isEmpty()) {
-            // CHANGED: Use Snackbar
             showSnackbar("All records are already uploaded.");
             return;
         }
@@ -323,7 +296,7 @@ public class HistoryActivity extends AppCompatActivity {
         final int[] done = {0}, uploaded = {0};
 
         for (AttendanceRecord record : unsynced) {
-            String docId = record.getIdHash(); // Use new ID hash
+            String docId = record.getIdHash();
             Map<String, Object> data = record.toMap();
 
             firestore.collection("attendance_records").document(docId)
@@ -333,7 +306,6 @@ public class HistoryActivity extends AppCompatActivity {
                         uploaded[0]++; done[0]++;
                         if (done[0] == total) {
                             loadHistory(searchNameEditText.getText().toString());
-                            // CHANGED: Use Snackbar
                             showSnackbar(uploaded[0] + " records uploaded.");
                         }
                     })
@@ -341,7 +313,6 @@ public class HistoryActivity extends AppCompatActivity {
                         done[0]++;
                         if (done[0] == total) {
                             loadHistory(searchNameEditText.getText().toString());
-                            // CHANGED: Use Snackbar
                             showSnackbar(uploaded[0] + " records uploaded, some failed.");
                         }
                         Log.e("HistorySync", "Failed to sync record: " + docId, e);
@@ -378,16 +349,11 @@ public class HistoryActivity extends AppCompatActivity {
         updateButtonStates();
     }
 
-    // ----------------------- CSV Export (Keeping Toasts) -----------------------
-
     private void showExportOptions() {
-        // --- THIS IS THE MISSING LINE ---
         String[] options = {"Save to Files", "Share via Other Apps"};
-        // ---
-
         new AlertDialog.Builder(this)
                 .setTitle("Export Options")
-                .setItems(options, (dialog, which) -> { // <-- This line needs the variable from above
+                .setItems(options, (dialog, which) -> {
                     if (which == 0) createCSVFile();
                     else shareCSVDirectly();
                 })
@@ -395,8 +361,7 @@ public class HistoryActivity extends AppCompatActivity {
     }
 
     private void createCSVFile() {
-        String section = getSharedPreferences("AttendancePrefs", MODE_PRIVATE)
-                .getString("last_section", "Section");
+        String section = getSharedPreferences("AttendancePrefs", MODE_PRIVATE).getString("last_section", "Section");
         String safeSection = section.replaceAll("[^a-zA-Z0-9]", "_");
         String currentDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
         String fileName = "BSIT_" + safeSection + "_" + currentDate + ".csv";
@@ -408,7 +373,6 @@ public class HistoryActivity extends AppCompatActivity {
     }
 
     private void writeCSVToUri(Uri uri) {
-        // This is called after the user selects a location in their file browser
         try (OutputStreamWriter writer = new OutputStreamWriter(getContentResolver().openOutputStream(uri))) {
             writer.write("Name,Date,Section,Time In AM,Time Out AM,Time In PM,Time Out PM\n");
             for (AttendanceRecord record : adapter.getCurrentList()) {
@@ -427,15 +391,12 @@ public class HistoryActivity extends AppCompatActivity {
     }
 
     private void shareCSVDirectly() {
-        // This is called when the user selects "Share via Other Apps"
         try {
-            String section = getSharedPreferences("AttendancePrefs", MODE_PRIVATE)
-                    .getString("last_section", "Section");
+            String section = getSharedPreferences("AttendancePrefs", MODE_PRIVATE).getString("last_section", "Section");
             String safeSection = section.replaceAll("[^a-zA-Z0-9]", "_");
             String currentDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
             String fileName = "BSIT_" + safeSection + "_" + currentDate + ".csv";
 
-            // Create the CSV file in the app's cache directory
             File cacheFile = new File(getCacheDir(), fileName);
             try (FileOutputStream fos = new FileOutputStream(cacheFile);
                  OutputStreamWriter writer = new OutputStreamWriter(fos)) {
@@ -450,7 +411,6 @@ public class HistoryActivity extends AppCompatActivity {
                 }
             }
 
-            // Use FileProvider to securely share the file
             Uri contentUri = FileProvider.getUriForFile(this, getPackageName() + ".provider", cacheFile);
             Intent shareIntent = new Intent(Intent.ACTION_SEND);
             shareIntent.setType("text/csv");
@@ -462,17 +422,10 @@ public class HistoryActivity extends AppCompatActivity {
         }
     }
 
-    // ------------------- UI HELPERS -------------------
-
-    // --- ADDED: showSnackbar helper method ---
     private void showSnackbar(String message) {
         View rootView = findViewById(android.R.id.content);
-        if (rootView != null) {
-            Snackbar.make(rootView, message, Snackbar.LENGTH_SHORT).show();
-        } else {
-            // Fallback
-            Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
-        }
+        if (rootView != null) Snackbar.make(rootView, message, Snackbar.LENGTH_SHORT).show();
+        else Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
 
     private void applyWindowInsetPadding() {
@@ -488,8 +441,6 @@ public class HistoryActivity extends AppCompatActivity {
         boolean hasInternet = checkInternetConnection();
         syncButton.setEnabled(hasInternet);
     }
-
-    // ----------------------- Recycler Adapter (Inner Class) -----------------------
 
     private class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.Holder> {
         private final List<AttendanceRecord> list;
@@ -511,7 +462,6 @@ public class HistoryActivity extends AppCompatActivity {
             text.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
             text.setTextSize(15);
             text.setTypeface(Typeface.MONOSPACE);
-            // text.setTextColor(Color.DKGRAY); // Let theme handle color
             row.addView(dot);
             row.addView(text);
             return new Holder(row, dot, text);
@@ -522,7 +472,6 @@ public class HistoryActivity extends AppCompatActivity {
             AttendanceRecord r = list.get(pos);
             GradientDrawable circle = new GradientDrawable();
             circle.setShape(GradientDrawable.OVAL);
-            // Use theme-safe colors
             circle.setColor(r.isSynced() ? getResources().getColor(R.color.green_dark) : getResources().getColor(R.color.md_theme_error));
             h.dot.setBackground(circle);
 
@@ -543,7 +492,6 @@ public class HistoryActivity extends AppCompatActivity {
                                 list.remove(pos);
                                 notifyItemRemoved(pos);
                                 totalTextView.setText("Total: " + list.size());
-                                // CHANGED: Use Snackbar
                                 showSnackbar("Record permanently deleted.");
                             } else {
                                 notifyItemChanged(pos);

@@ -3,44 +3,25 @@ plugins {
     id("com.google.gms.google-services")
 }
 
-// Renamed 'camerax_version' to 'cameraxVersion'
-val cameraxVersion = "1.3.1"
-
 android {
-    signingConfigs {
-        create("release") {
-            storeFile = file("C:\\Sign Key\\releasekey.jks")
-            storePassword = "Baoit@0601"
-            keyAlias = "NightCode101"
-            keyPassword = "Baoit@0601"
-        }
-    }
     namespace = "cics.csup.qrattendancecontrol"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "cics.csup.qrattendancecontrol"
         minSdk = 24
         targetSdk = 34
-        versionCode = 5
-        versionName = "5.0"
+        versionCode = 1
+        versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        signingConfig = signingConfigs.getByName("release")
     }
 
     buildTypes {
         release {
-            isMinifyEnabled = false
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
+            isMinifyEnabled = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
-    }
-
-    buildFeatures {
-        viewBinding = true
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -49,44 +30,45 @@ android {
 }
 
 dependencies {
-    // Google ML Kit for Barcode Scanning (via Google Play Services)
-    implementation("com.google.android.gms:play-services-mlkit-barcode-scanning:18.3.0")
+    implementation(libs.appcompat)
+    implementation(libs.material)
+    implementation(libs.constraintlayout)
 
-    // --- THIS IS THE FIX ---
-    // CameraX (Google's modern camera library)
-    // Now using $cameraxVersion
-    implementation("androidx.camera:camera-core:$cameraxVersion")
-    implementation("androidx.camera:camera-camera2:$cameraxVersion")
-    implementation("androidx.camera:camera-lifecycle:$cameraxVersion")
-    implementation("androidx.camera:camera-view:$cameraxVersion")
-    // --- END OF FIX ---
-
-    // Local Broadcast Manager
-    implementation("androidx.localbroadcastmanager:localbroadcastmanager:1.1.0")
-
-    // Firebase BoM (manages versions automatically)
-    implementation(platform("com.google.firebase:firebase-bom:34.4.0"))
-
-    // Firebase (no versions when using BoM)
+    // Firebase
+    implementation(platform("com.google.firebase:firebase-bom:33.1.0"))
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-firestore")
     implementation("com.google.firebase:firebase-auth")
 
-    // AndroidX + UI (using your libs catalog)
-    implementation(libs.appcompat)
-    implementation(libs.material)
-    implementation(libs.constraintlayout)
-    implementation(libs.navigation.fragment)
-    implementation(libs.navigation.ui)
+    // CameraX
+    val cameraxVersion = "1.3.4"
+    implementation("androidx.camera:camera-core:$cameraxVersion")
+    implementation("androidx.camera:camera-camera2:$cameraxVersion")
+    implementation("androidx.camera:camera-lifecycle:$cameraxVersion")
+    implementation("androidx.camera:camera-view:$cameraxVersion")
 
-    // Testing
+    // ML Kit
+    implementation("com.google.mlkit:barcode-scanning:17.2.0")
+
+    // Charts
+    implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
+
+    // Swipe Refresh
+    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
+
+    // Remote Config library
+    implementation("com.google.firebase:firebase-config")
+
+    // Push Notifications
+    implementation("com.google.firebase:firebase-messaging")
+
+    // Add this for In-App Messaging Display
+    implementation("com.google.firebase:firebase-inappmessaging-display")
+
+    // Analytics
+    implementation("com.google.firebase:firebase-analytics")
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
-
-    // MPAndroidChart
-    implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
-
-    // Swipe to Refresh
-    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
 }

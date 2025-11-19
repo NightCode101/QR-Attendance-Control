@@ -1,10 +1,7 @@
 <resources>
-
-    <!-- App Info -->
     <string name="app_name">CICS QR Attendance Control</string>
     <string name="app_title">CICS QR Attendance Control</string>
 
-    <!-- Labels -->
     <string name="qr_data">Name: —</string>
     <string name="status_label">Status: —</string>
     <string name="time_label">Time: —</string>
@@ -12,87 +9,40 @@
     <string name="attendance_history_list_label">Scrollable attendance history list</string>
     <string name="bsit_label">BSIT:</string>
 
-    <!-- Time Mode -->
-    <string name="time_in">Time In</string>
-    <string name="time_out">Time Out</string>
-    <string name="scan_prompt_in">Scan QR Code for Time In</string>
-    <string name="scan_prompt_out">Scan QR Code for Time Out</string>
-    <string name="select_mode_first">Please select Time In or Time Out first.</string>
-
-    <!-- Buttons -->
     <string name="scan_qr">Scan QR Code</string>
     <string name="attendance_history">Attendance List</string>
     <string name="export_csv">Export List</string>
     <string name="clear_history">Clear List</string>
     <string name="admin_panel">Admin Panel</string>
-    <string name="export_section_csv">Export Section to CSV</string>
+    <string name="button_show_chart">Show Attendance Chart</string>
 
-    <!-- Dialogs / Confirmations -->
-    <string name="confirm_clear_history">Are you sure you want to clear all attendance entry?</string>
-    <string name="clear_history_title">Clear List</string>
-    <string name="history_cleared">List cleared</string>
-    <string name="delete_entry_title">Remove Entry</string>
-    <string name="confirm_delete_entry">Do you want to remove this attendance entry?</string>
-    <string name="entry_deleted">Entry Removed</string>
-    <string name="no_attendance_found">No attendance records found.</string>
-
-    <!-- Export -->
-    <string name="no_data_export">No data to export.</string>
-    <string name="export_success">Exported to: %1$s</string>
-    <string name="export_failed">Export failed: %1$s</string>
-    <string name="write_permission_denied">Write permission denied.</string>
-
-    <!-- Entry Format -->
-    <string name="record_format">Name: %1$s\nDate: %2$s\nTime-In: %3$s\nTime-Out: %4$s</string>
-
-    <!-- Navigation -->
-    <string name="next">Next</string>
-    <string name="previous">Previous</string>
-
-    <!-- Inputs -->
-    <string name="hint_enter_section">Enter your section</string>
-    <string name="enter_section">Enter your section</string>
-    <string name="hint_search_name">Search name...</string>
-
-    <!-- Common -->
-    <string name="yes">Yes</string>
-    <string name="no">No</string>
-    <string name="delete">Remove</string>
-    <string name="cancel">Cancel</string>
-
-    <!-- Admin / Login -->
-    <string name="admin_title">ADMINISTRATOR</string>
     <string name="admin_login">Admin Login</string>
     <string name="email">Email</string>
     <string name="password">Password</string>
     <string name="remember_me">Remember Me</string>
     <string name="login">Login</string>
-
-    <string name="button_show_chart">Show Attendance Chart</string>
-    <string name="time_am">AM</string>
-    <string name="time_pm">PM</string>
-    <string name="radio_time_in_am">Time In (AM)</string>
-    <string name="radio_time_out_am">Time Out (AM)</string>
-    <string name="radio_time_in_pm">Time In (PM)</string>
-    <string name="radio_time_out_pm">Time Out (PM)</string>
-
     <string name="admin_panel_title">Admin Attendance Panel</string>
     <string name="admin_label_section">Section:</string>
     <string name="admin_label_total">Total Records: 0</string>
     <string name="admin_button_logout">Logout</string>
+    <string name="hint_search_name">Search name...</string>
+
+    <string name="history_label_total">Total: 0</string>
+    <string name="history_button_upload">Upload Attendance</string>
 
     <string name="graph_button_1y">1st Year</string>
     <string name="graph_button_2y">2nd Year</string>
     <string name="graph_button_3y">3rd Year</string>
     <string name="graph_button_4y">4th Year</string>
 
-    <string name="history_label_total">Total: 0</string>
-    <string name="history_button_upload">Upload Attendance</string>
-
     <string name="scanner_title">Scan Student QR Code</string>
     <string name="scanner_button_flash">Flash</string>
-
-    <!-- Toast -->
     <string name="created_by">💗 Created by: Jeylo Baoit</string>
 
+    <string name="time_am">AM</string>
+    <string name="time_pm">PM</string>
+    <string name="radio_time_in_am">Time In (AM)</string>
+    <string name="radio_time_out_am">Time Out (AM)</string>
+    <string name="radio_time_in_pm">Time In (PM)</string>
+    <string name="radio_time_out_pm">Time Out (PM)</string>
 </resources>

@@ -58,21 +58,16 @@ public class CustomScanActivity extends AppCompatActivity {
         setContentView(R.layout.activity_custom_scan);
 
         previewView = findViewById(R.id.camera_preview);
-        slider_zoom = findViewById(R.id.slider_zoom); // <-- CHANGED id
+        slider_zoom = findViewById(R.id.slider_zoom);
         flashButton = findViewById(R.id.button_toggle_flash);
         titleText = findViewById(R.id.scanner_title);
-        scanner_indicator = findViewById(R.id.scanner_indicator); // <-- ADDED
+        scanner_indicator = findViewById(R.id.scanner_indicator);
 
-        // Get the text from MainActivity and set it
         String title = getIntent().getStringExtra("SCAN_TITLE");
         String indicator = getIntent().getStringExtra("SCAN_INDICATOR");
 
-        if (title != null) {
-            titleText.setText(title);
-        }
-        if (indicator != null) {
-            scanner_indicator.setText(indicator);
-        }
+        if (title != null) titleText.setText(title);
+        if (indicator != null) scanner_indicator.setText(indicator);
 
         cameraExecutor = Executors.newSingleThreadExecutor();
 
@@ -152,25 +147,20 @@ public class CustomScanActivity extends AppCompatActivity {
 
         try {
             cameraProvider.unbindAll();
-
             camera = cameraProvider.bindToLifecycle(
                     (LifecycleOwner) this,
                     cameraSelector,
                     preview,
                     imageAnalysis
             );
-
             setupCameraControls();
-
         } catch (Exception e) {
             Log.e(TAG, "Use case binding failed", e);
         }
     }
 
     private void handleBarcodes(List<Barcode> barcodes) {
-        if (barcodes.isEmpty()) {
-            return;
-        }
+        if (barcodes.isEmpty()) return;
 
         for (Barcode barcode : barcodes) {
             String rawValue = barcode.getRawValue();
@@ -210,7 +200,6 @@ public class CustomScanActivity extends AppCompatActivity {
                 slider_zoom.setStepSize(0.1f);
                 slider_zoom.setValue(0.0f);
 
-                // --- THIS IS THE LISTENER ---
                 slider_zoom.addOnChangeListener((slider, value, fromUser) -> {
                     try {
                         camera.getCameraControl().setLinearZoom(value);
