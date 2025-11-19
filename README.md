@@ -5,7 +5,7 @@
 <h1 align="center">CICS QR Attendance Control</h1>
 
 <p align="center">
-  A simple, offline-ready Android app that records student attendance by scanning QR codes.
+  A smart, offline-first Android application designed to streamline student attendance using QR technology, real-time analytics, and cloud synchronization.
 </p>
 
 <p align="center">
@@ -13,7 +13,7 @@
     <img src="https://img.shields.io/badge/Download-APK-blue.svg" alt="Download APK">
   </a>
   <a href="#">
-    <img src="https://img.shields.io/badge/platform-Android-blue.svg" alt="Platform">
+    <img src="https://img.shields.io/badge/platform-Android-green.svg" alt="Platform">
   </a>
   <a href="mailto:baoitjerialle01@gmail.com">
     <img src="https://img.shields.io/badge/contact-email-orange.svg" alt="Contact">
@@ -22,78 +22,64 @@
 
 ---
 
+## 🚀 New in V5 (Complete Overhaul)
+
+- **⚡ Ultra-Fast Scanning:** Replaced legacy ZXing with **CameraX + ML Kit** for instant QR detection.
+- **☁️ Dynamic Configuration:** Sections and Admin access can be updated instantly via **Firebase Remote Config** without an app update.
+- **📊 Data Analytics:** Built-in charts to visualize attendance trends per year level.
+- **🔔 Cloud Messaging:** Receive admin announcements via Push Notifications.
+
+---
+
 ## ✨ Core Features
 
-- 📷 **QR Code Scanner**  
-  Scan student-generated QR codes to record attendance instantly.
+### 📱 For Attendance Taking
+- **Smart Logic:** Automatically detects scanning errors (e.g., scanning "Time In" twice).
+- **Offline-First:** Records are saved to a local SQLite database immediately, ensuring no data loss without internet.
+- **Dynamic Sections:** Section lists ("1A", "1B", etc.) are fetched from the cloud.
+- **History Log:** View, search, and manage local scan logs.
+- **CSV Export:** Generate and share attendance reports compatible with Excel/Sheets.
 
-- 🕒 **Time-In / Time-Out Logic**  
-  Smart system to differentiate first scan (Time-In) and second scan (Time-Out) per person per day.
-
-- 📅 **Date & Time Display**  
-  Shows the current time and date in 12-hour format with AM/PM.
-
-- 📁 **Offline Mode (SQLite)**  
-  All records are stored locally and work without internet access.
-
-- ☁️ **Firebase Sync (Admin Only)**  
-  Syncs attendance data to Firestore when online.
-
-- 📤 **Export CSV via Share or File Picker**  
-  Export selected attendance as a clean CSV file. You can share it instantly through apps like Gmail or Messenger, or save it using Android's file picker (SAF).
-
-- 📋 **Attendance History View**  
-  Displays all scans with clear formatting and spacing.
-
-- 🔐 **Admin Login via Firebase Auth**  
-  Only authorized users can access the admin panel using email/password login.
-
-- 🧠 **"Remember Me" Login Option**  
-  Saves email and password locally for faster future login.
-
-- 🗑️ **Long Press to Delete**  
-  Admins can long-press on a record to delete it from both local UI and Firestore, with an undo option.
-
-- 🎨 **Custom UI Theme**  
-  Smooth, clean interface using your own color palette and Material components.
+### 🔐 For Administrators
+- **Secure Login:** Protected by Firebase Authentication + UID Whitelisting.
+- **Real-Time Sync:** Automatically uploads local records to Firestore when online.
+- **Cloud Control:** Change the list of sections or add new admins remotely.
+- **Global Search:** Filter records by Date, Section, Name, or Student ID.
 
 ---
 
-## 📱 Features
+## 📖 How to Use
 
-### 🔐 Admin Panel
-- Secure Firebase email/password login
-- Multiple admin support via UID checking
-- "Remember Me" login toggle
-- Access-controlled AdminActivity
+### 🧑‍🏫 For Users (Faculty/Attendance Officers)
+1.  **Select Section:** Choose the class section from the dropdown (loaded dynamically).
+2.  **Select Time Slot:** Tap the radio button for **Time In (AM/PM)** or **Time Out (AM/PM)**.
+3.  **Scan:** Tap **"Scan QR Code"** and point the camera at the student's ID.
+    * *QR Format:* `ID_NUMBER|STUDENT_NAME`
+4.  **View History:** Tap **"Attendance History"** to view logs.
+    * *Green Dot:* Synced to cloud.
+    * *Red Dot:* Local only (will sync when internet returns).
+5.  **Export:** Go to History -> Tap **"Export CSV"** to save or share the report.
 
-### 🧑‍💼 Attendance Management
-- QR code scanner for student check-in/out
-- Time-in and time-out detection logic
-- View and search records by section
-- Long-press delete with undo option
-- Firebase Firestore sync (admin only)
-
-### 💾 Storage and Export
-- Offline-first: all records saved in local SQLite
-- Scoped Storage-based CSV export per section
-- Automatic file naming with section and date
-
-### 🖌 UI/UX
-- Alphabetically sorted section buttons
-- Color indicators for selected/unselected buttons
-- Custom light theme and branding palette
-- Material UI components and spacing
+### 🛡️ For Admins
+1.  **Login:** Tap **"Admin Panel"** on the main screen and log in with your credentials.
+2.  **Dashboard:** View all attendance records synced from all devices.
+3.  **Filter & Search:** Use the spinners to filter by Year/Month/Section or search a specific Name.
+4.  **Manage Data:** Long-press a record to **Delete** it permanently from the cloud database.
+5.  **Configuration:**
+    * To add a new section (e.g., "5A"), simply update the `sections_list` JSON in **Firebase Remote Config**.
+    * Restart the app to apply changes instantly.
 
 ---
 
-## 🧰 Built With
+## 🧰 Tech Stack
 
-- **Java** (Android SDK)
-- **SQLite** (Local Database)
-- **Firebase Auth & Firestore** (Admin & Sync)
-- **ZXing** (QR Scanner via external intent)
-- **Storage Access Framework** (File export)
+- **Language:** Java (Android SDK)
+- **Architecture:** MVVM / Event-Driven
+- **Scanning:** Android CameraX + Google ML Kit (Vision)
+- **Database:** SQLite (Local) + Firebase Firestore (Cloud)
+- **Backend/Config:** Firebase Remote Config, Authentication, Cloud Messaging (FCM)
+- **Visualization:** MPAndroidChart
+- **Export:** Storage Access Framework (SAF) & FileProvider
 
 ---
 
@@ -107,11 +93,13 @@ Click below to grab the latest version:
 
 ## 🖼 Screenshots
 
-| Main Menu | Attendance History |
-|-----------|--------------------|
-| ![Main Menu](UI_Home.jpg) | ![History](UI_History.jpg) |
-| Login Menu | Admin Panel |
-| ![Main Menu](UI_Login.jpg) | ![History](UI_Admin.jpg) |
+| Main Menu                        | Scanner Interface                |
+|----------------------------------|----------------------------------|
+| ![Main Menu](UI-Home.png)        | ![Scanner](UI-Scan.png)          |
+| **Admin Panel**                  | **History Panel**                |
+| ![Admin Panel](UI-Admin.png)     | ![History](UI-History.png)       |
+| **Login Interface**              | **Analytics Graph**              |
+| ![Login Interface](UI-Login.png) | ![Analytics Graph](UI-Graph.png) |
 
 ---
 
@@ -119,8 +107,7 @@ Click below to grab the latest version:
 
 For bugs, questions, or feedback:
 
-**Jeylo Baoit**  
-📬 [jeylodigitals@gmail.com](mailto:jeylodigitals@gmail.com)  
+**Jeylo Baoit** 📬 [jeylodigitals@gmail.com](mailto:jeylodigitals@gmail.com)  
 🌐 [Facebook Profile](https://fb.com/stc.primo)
 
 ---
@@ -134,5 +121,5 @@ Please ask permission if you plan to use this in commercial or institutional set
 
 ## 🙌 Contributions
 
-Pull requests and suggestions are welcome.  
+Pull requests and suggestions are welcome!  
 Help improve the system by opening an issue or forking the project.
