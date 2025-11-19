@@ -101,7 +101,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="8dp"
-                    android:text="BSIT"
+                    android:text="@string/bsit_label"
                     android:textColor="@color/md_theme_secondary"
                     android:textSize="20sp"
                     android:textStyle="bold" />
@@ -140,17 +140,18 @@
                 android:backgroundTint="@color/md_theme_primary"
                 app:cornerRadius="8dp" />
 
-            <!-- Graph Button -->
+            <!-- Graph Button Currently Disabled -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/graphButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
                 android:paddingVertical="12dp"
-                android:text="Show Attendance Chart"
+                android:text="@string/button_show_chart"
                 android:backgroundTint="@color/md_theme_primary"
                 app:cornerRadius="8dp"
-                android:enabled="false" />
+                android:enabled="false"
+                android:visibility="invisible" />
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
@@ -180,7 +181,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:gravity="center_horizontal"
-                android:text="AM"
+                android:text="@string/time_am"
                 android:textColor="@color/md_theme_primary"
                 android:textSize="14sp"
                 android:textStyle="bold" />
@@ -190,7 +191,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:gravity="center_horizontal"
-                android:text="PM"
+                android:text="@string/time_pm"
                 android:textColor="@color/md_theme_primary"
                 android:textSize="14sp"
                 android:textStyle="bold" />
@@ -216,16 +217,18 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:buttonTint="@color/radio_checked"
-                    android:text="Time In (AM)"
-                    android:textColor="@color/md_theme_primary" />
+                    android:text="@string/radio_time_in_am"
+                    android:textColor="@color/md_theme_primary"
+                    app:buttonTint="@color/md_theme_secondary" />
 
                 <RadioButton
                     android:id="@+id/radioTimeOutAM"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:buttonTint="@color/radio_checked"
-                    android:text="Time Out (AM)"
-                    android:textColor="@color/md_theme_primary" />
+                    android:text="@string/radio_time_out_am"
+                    android:textColor="@color/md_theme_primary"
+                    app:buttonTint="@color/md_theme_secondary" />
             </RadioGroup>
 
             <!-- PM RadioGroup -->
@@ -242,16 +245,18 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:buttonTint="@color/radio_checked"
-                    android:text="Time In (PM)"
-                    android:textColor="@color/md_theme_primary" />
+                    android:text="@string/radio_time_in_pm"
+                    android:textColor="@color/md_theme_primary"
+                    app:buttonTint="@color/md_theme_secondary" />
 
                 <RadioButton
                     android:id="@+id/radioTimeOutPM"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:buttonTint="@color/radio_checked"
-                    android:text="Time Out (PM)"
-                    android:textColor="@color/md_theme_primary" />
+                    android:text="@string/radio_time_out_pm"
+                    android:textColor="@color/md_theme_primary"
+                    app:buttonTint="@color/md_theme_secondary" />
             </RadioGroup>
         </LinearLayout>
     </LinearLayout>

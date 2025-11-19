@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <uses-feature android:name="android.hardware.camera.any" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.INTERNET" />
 
@@ -31,9 +32,11 @@
         <activity android:name=".HistoryActivity" />
 
         <activity
-            android:name=".QRScanActivity"
-            android:screenOrientation="unspecified"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+            android:name=".CustomScanActivity"
+            android:screenOrientation="portrait"
+            android:stateNotNeeded="true"
+            android:windowSoftInputMode="stateAlwaysHidden"
+            android:theme="@style/Theme.QRAttendanceControl"/>
 
         <activity
             android:name=".MainActivity"

@@ -9,15 +9,19 @@ import com.github.mikephil.charting.data.BarEntry;
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter;
 
 import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.android.material.snackbar.Snackbar; // ADDED: For Snackbar
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class GraphActivity extends AppCompatActivity {
 
@@ -68,7 +72,7 @@ public class GraphActivity extends AppCompatActivity {
     }
 
     private void updateGraphForYear(int year) {
-        String sectionRange = getSectionRangeForYear(year); // Get the section range based on the year
+        String sectionRange = getSectionRangeForYear(year);
 
         // Firestore query to get the attendance data for all sections in the selected year
         firestore.collection("sections_total").document(sectionRange)
@@ -78,20 +82,28 @@ public class GraphActivity extends AppCompatActivity {
                     int totalStudents = 0;
                     int totalPresent = 0;
 
-                    // Loop through each document (each section)
                     for (QueryDocumentSnapshot document : querySnapshot) {
-                        totalStudents += document.getLong("total_students").intValue();
-                        totalPresent += document.getLong("present_count").intValue();
+                        Long studentsLong = document.getLong("total_students");
+                        Long presentLong = document.getLong("present_count");
+
+                        if (studentsLong != null) {
+                            totalStudents += studentsLong.intValue();
+                        } else {
+                            Log.w("GraphActivity", "Document missing total_students field.");
+                        }
+
+                        if (presentLong != null) {
+                            totalPresent += presentLong.intValue();
+                        }
                     }
 
-                    // Calculate absent students
                     int totalAbsent = totalStudents - totalPresent;
 
-                    // Update the graph with the data
                     updateGraph(totalPresent, totalAbsent, year);
                 })
                 .addOnFailureListener(e -> {
-                    Toast.makeText(GraphActivity.this, "Error loading data: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    // CHANGED: Use Snackbar
+                    showSnackbar("Error loading data: " + e.getMessage());
                 });
     }
 
@@ -123,13 +135,27 @@ public class GraphActivity extends AppCompatActivity {
     }
 
     private String getSectionRangeForYear(int year) {
-        // Return the section range for the selected year
         switch (year) {
             case 1: return "1A-1D";
             case 2: return "2A-2C";
             case 3: return "3A-3C";
             case 4: return "4A-4C";
             default: return "";
+        }
+    }
+
+    // ------------------- UI HELPER -------------------
+
+    /**
+     * Displays a non-stacking Snackbar message.
+     */
+    private void showSnackbar(String message) {
+        View rootView = findViewById(android.R.id.content);
+        if (rootView != null) {
+            Snackbar.make(rootView, message, Snackbar.LENGTH_SHORT).show();
+        } else {
+            // Fallback
+            Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
         }
     }
 }

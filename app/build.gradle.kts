@@ -3,19 +3,30 @@ plugins {
     id("com.google.gms.google-services")
 }
 
+// Renamed 'camerax_version' to 'cameraxVersion'
+val cameraxVersion = "1.3.1"
+
 android {
+    signingConfigs {
+        create("release") {
+            storeFile = file("C:\\Sign Key\\releasekey.jks")
+            storePassword = "Baoit@0601"
+            keyAlias = "NightCode101"
+            keyPassword = "Baoit@0601"
+        }
+    }
     namespace = "cics.csup.qrattendancecontrol"
     compileSdk = 34
-    //
 
     defaultConfig {
         applicationId = "cics.csup.qrattendancecontrol"
-        minSdk = 29
+        minSdk = 24
         targetSdk = 34
-        versionCode = 4
-        versionName = "4.1"
+        versionCode = 5
+        versionName = "5.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        signingConfig = signingConfigs.getByName("release")
     }
 
     buildTypes {
@@ -31,8 +42,6 @@ android {
     buildFeatures {
         viewBinding = true
     }
-    buildToolsVersion = "36.0.0"
-    ndkVersion = "29.0.13599879 rc2"
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -40,8 +49,17 @@ android {
 }
 
 dependencies {
-    // QR Scanner
-    implementation("com.journeyapps:zxing-android-embedded:4.3.0")
+    // Google ML Kit for Barcode Scanning (via Google Play Services)
+    implementation("com.google.android.gms:play-services-mlkit-barcode-scanning:18.3.0")
+
+    // --- THIS IS THE FIX ---
+    // CameraX (Google's modern camera library)
+    // Now using $cameraxVersion
+    implementation("androidx.camera:camera-core:$cameraxVersion")
+    implementation("androidx.camera:camera-camera2:$cameraxVersion")
+    implementation("androidx.camera:camera-lifecycle:$cameraxVersion")
+    implementation("androidx.camera:camera-view:$cameraxVersion")
+    // --- END OF FIX ---
 
     // Local Broadcast Manager
     implementation("androidx.localbroadcastmanager:localbroadcastmanager:1.1.0")
@@ -54,14 +72,12 @@ dependencies {
     implementation("com.google.firebase:firebase-firestore")
     implementation("com.google.firebase:firebase-auth")
 
-    // AndroidX + UI
+    // AndroidX + UI (using your libs catalog)
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.constraintlayout)
     implementation(libs.navigation.fragment)
     implementation(libs.navigation.ui)
-
-    implementation("androidx.appcompat:appcompat:1.6.1")
 
     // Testing
     testImplementation(libs.junit)
@@ -73,6 +89,4 @@ dependencies {
 
     // Swipe to Refresh
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
-
-    implementation(libs.appcompat)
 }
