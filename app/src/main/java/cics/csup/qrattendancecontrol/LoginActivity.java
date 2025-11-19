@@ -13,7 +13,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.google.android.material.snackbar.Snackbar; // ADDED: For Snackbar
+import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
@@ -22,6 +22,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class LoginActivity extends AppCompatActivity {
+    private ConfigHelper configHelper;
 
     private static final Set<String> ADMIN_UIDS = new HashSet<>(Arrays.asList(
             "KCKVGF5sJ7TfGWKAl0fRJziE4Ja2",
@@ -36,15 +37,17 @@ public class LoginActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        // --- UI & Theme Setup (Kept for visual consistency) ---
         getWindow().setNavigationBarColor(Color.parseColor("#121212"));
         getWindow().setStatusBarColor(Color.parseColor("#121212"));
         View decor = getWindow().getDecorView();
         decor.setSystemUiVisibility(0);
-        // --- End UI Setup ---
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
+        configHelper = new ConfigHelper();
+
+        configHelper.fetchAndActivate(this, null);
 
         mAuth = FirebaseAuth.getInstance();
         prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
@@ -54,7 +57,6 @@ public class LoginActivity extends AppCompatActivity {
         loginButton = findViewById(R.id.loginButton);
         rememberCheckBox = findViewById(R.id.rememberCheckBox);
 
-        // 🔹 Check if user is already logged in from a previous session
         FirebaseUser currentUser = mAuth.getCurrentUser();
         boolean rememberMe = prefs.getBoolean("remember_me", false);
 
@@ -64,22 +66,18 @@ public class LoginActivity extends AppCompatActivity {
                 finish();
                 return;
             } else {
-                // CHANGED: Use Snackbar
                 showSnackbar("Access denied. Not an admin.");
                 mAuth.signOut();
             }
         }
 
-        // 🔹 Load saved email/password for autofill
         if (prefs.getBoolean("remember_me", false)) {
             emailEditText.setText(prefs.getString("email", ""));
             passwordEditText.setText(prefs.getString("password", ""));
             rememberCheckBox.setChecked(true);
         }
 
-        loginButton.setOnClickListener(v -> {
-            loginUser();
-        });
+        loginButton.setOnClickListener(v -> loginUser());
     }
 
     private void loginUser() {
@@ -87,7 +85,6 @@ public class LoginActivity extends AppCompatActivity {
         String password = passwordEditText.getText().toString().trim();
 
         if (TextUtils.isEmpty(email) || TextUtils.isEmpty(password)) {
-            // CHANGED: Use Snackbar
             showSnackbar("Enter email and password");
             return;
         }
@@ -109,32 +106,26 @@ public class LoginActivity extends AppCompatActivity {
                         }
                         editor.apply();
 
-                        if (ADMIN_UIDS.contains(user.getUid())) {
+                        // --- UPDATED: Use ConfigHelper instead of the hardcoded Set ---
+                        if (configHelper.isAdmin(user.getUid())) {
                             Intent intent = new Intent(LoginActivity.this, AdminActivity.class);
                             startActivity(intent);
                             finish();
                         } else {
-                            // CHANGED: Use Snackbar
                             showSnackbar("Access denied. Not an admin.");
                             mAuth.signOut();
                         }
+                        // -------------------------------------------------------------
                     }
                 })
-                .addOnFailureListener(e ->
-                        // CHANGED: Use Snackbar
-                        showSnackbar("Login failed: " + e.getMessage())
-                );
+                .addOnFailureListener(e -> showSnackbar("Login failed: " + e.getMessage()));
     }
 
-    /**
-     * Displays a non-stacking Snackbar message.
-     */
     private void showSnackbar(String message) {
         View rootView = findViewById(android.R.id.content);
         if (rootView != null) {
             Snackbar.make(rootView, message, Snackbar.LENGTH_LONG).show();
         } else {
-            // Fallback
             Toast.makeText(this, message, Toast.LENGTH_LONG).show();
         }
     }

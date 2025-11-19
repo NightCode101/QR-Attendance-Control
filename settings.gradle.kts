@@ -9,22 +9,16 @@ pluginManagement {
         }
         mavenCentral()
         gradlePluginPortal()
-        maven { url = uri("https://jitpack.io") } // ✅ Add this line
-    }
-
-    plugins {
-        id("com.google.gms.google-services") version "4.4.1"
     }
 }
-
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
         google()
         mavenCentral()
-        maven { url = uri("https://jitpack.io") } // ✅ Add this line too
+        maven { url = uri("https://jitpack.io") } // <--- This must be here
     }
 }
 
-rootProject.name = "QR Attendance Control"
+rootProject.name = "CICS QR Attendance Control"
 include(":app")

@@ -22,10 +22,7 @@ public class AttendanceRecord {
                             String timeInPM, String timeOutPM, String section) {
         this.id = id;
         this.name = name;
-
-        // This is the new studentID field
         this.studentID = studentID;
-
         this.date = date;
         this.timeInAM = timeInAM;
         this.timeOutAM = timeOutAM;
@@ -36,7 +33,6 @@ public class AttendanceRecord {
         this.isHidden = false;
     }
 
-    // ---- Getters & Setters ----
     public int getId() { return id; }
     public String getName() { return name; }
     public String getStudentID() { return studentID; }
@@ -47,8 +43,6 @@ public class AttendanceRecord {
     public String getTimeOutPM() { return timeOutPM; }
     public String getSection() { return section; }
     public boolean isSynced() { return synced; }
-
-    // 2. ADD THIS GETTER
     public boolean isHidden() { return isHidden; }
 
     public void setId(int id) { this.id = id; }
@@ -61,17 +55,14 @@ public class AttendanceRecord {
     public void setTimeOutPM(String timeOutPM) { this.timeOutPM = timeOutPM; }
     public void setSection(String section) { this.section = section; }
     public void setSynced(boolean synced) { this.synced = synced; }
-
-    // 3. ADD THIS SETTER
     public void setHidden(boolean hidden) { isHidden = hidden; }
 
-    // ---- Compatibility aliases (for AdminActivity & HistoryActivity) ----
+    // Compatibility aliases
     public String getTimeInAm() { return timeInAM; }
     public String getTimeOutAm() { return timeOutAM; }
     public String getTimeInPm() { return timeInPM; }
     public String getTimeOutPm() { return timeOutPM; }
 
-    // ---- Utility functions ----
     public void setField(String field, String value) {
         switch (field) {
             case "time_in_am": setTimeInAM(value); break;
@@ -81,9 +72,6 @@ public class AttendanceRecord {
         }
     }
 
-    /**
-     * Safe getter that returns "-" if field is null, empty, or invalid.
-     */
     public String getFieldValue(String field) {
         String value;
         switch (field) {
@@ -99,7 +87,6 @@ public class AttendanceRecord {
         return value;
     }
 
-    // ---- Firestore Map ----
     public Map<String, Object> toMap() {
         Map<String, Object> map = new HashMap<>();
         map.put("name", name);
@@ -113,22 +100,10 @@ public class AttendanceRecord {
         return map;
     }
 
-    // ---- Generate compact Firestore document ID ----
     public String getIdHash() {
         String safeID = studentID != null ? studentID.replaceAll("[^a-zA-Z0-9-]", "_") : "unknown";
         String safeSection = section != null ? section.replaceAll("\\s+", "_").toLowerCase(Locale.getDefault()) : "nosection";
         String safeDate = date != null ? date.replaceAll("\\s+", "_").toLowerCase(Locale.getDefault()) : "nodate";
         return safeID + "_" + safeDate + "_" + safeSection;
-    }
-
-    // ---- Get value by field key ----
-    public String getField(String key) {
-        switch (key) {
-            case "time_in_am": return getTimeInAM();
-            case "time_out_am": return getTimeOutAM();
-            case "time_in_pm": return getTimeInPM();
-            case "time_out_pm": return getTimeOutPM();
-            default: return null;
-        }
     }
 }

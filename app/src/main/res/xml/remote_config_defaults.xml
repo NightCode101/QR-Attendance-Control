@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<defaultsMap>
+    <entry>
+        <key>admin_uids</key>
+        <value>KCKVGF5sJ7TfGWKAl0fRJziE4Ja2,NFs38qPJAXXZFspS37nRhteROWn1</value>
+    </entry>
+
+    <entry>
+        <key>sections_list</key>
+        <value>["Select a Section", "1A", "1B", "1C", "1D", "2A", "2B", "2C", "3A", "3B", "3C", "4A", "4B", "4C", "COLSC", "TESTING PURPOSES"]</value>
+    </entry>
+</defaultsMap>
