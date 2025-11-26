@@ -37,7 +37,7 @@
 
     <string name="scanner_title">Scan Student QR Code</string>
     <string name="scanner_button_flash">Flash</string>
-    <string name="created_by">💗 Created by: Jeylo Baoit</string>
+    <string name="creator_credit">💗 Created by: Jeylo Baoit</string>
 
     <string name="time_am">AM</string>
     <string name="time_pm">PM</string>

@@ -153,6 +153,8 @@ public class MainActivity extends AppCompatActivity {
 
         syncUnsyncedRecords();
         updateDateTimeLabels();
+
+        showSnackbar(getString(R.string.creator_credit));
     }
 
     private void setupSectionSpinner() {
@@ -256,22 +258,47 @@ public class MainActivity extends AppCompatActivity {
         String studentID;
         String studentName;
 
+        // Check QR Content Format
         if (parts.length < 2) {
+            // It doesn't have the "|" separator. Check if it looks like an old ID.
             if (qrContent.contains("-") || qrContent.matches(".*\\d.*")) {
-                studentID = qrContent;
-                studentName = qrContent;
-                qrDataText.setText("Name: " + studentName);
-                showConfirmationDialog("Old QR Code Scanned", "Please change the QR Code to the new format.");
+                // --- OLD FORMAT DETECTED ---
+                qrDataText.setText("Status: Old QR Format Rejected");
+
+                // 1. Show clearer error dialog notifying that it was NOT recorded
+                showConfirmationDialog("Old QR Code Scanned", "This QR code uses an outdated format and was NOT recorded.\n\nPlease use the new format: ID|Name");
+
+                // 2. Log this as a failed scan attempt
+                // Using "old_format" as ID so you can track how often this happens in Firebase
+                if (analyticsManager != null) {
+                    analyticsManager.logScan("old_format_rejected", "unknown", timeSlotFriendlyName, false);
+                }
+
+                // 3. STOP EXECUTION IMMEDIATELY so it doesn't save to DB
+                return;
+
             } else {
+                // --- GARBAGE DATA DETECTED ---
                 showConfirmationDialog("Invalid QR Code", "The code should contain:\nID Number & Name.");
                 // Log failed attempt
-                analyticsManager.logScan("unknown", "unknown", timeSlotFriendlyName, false);
+                if (analyticsManager != null) {
+                    analyticsManager.logScan("invalid_data", "unknown", timeSlotFriendlyName, false);
+                }
                 return;
             }
         } else {
+            // --- NEW CORRECT FORMAT ---
             studentID = parts[0];
             studentName = parts[1];
             qrDataText.setText("Name: " + studentName);
+        }
+
+        // --- If code reaches here, the format is correct. Proceed with recording. ---
+
+        // Ensure section is selected (extra safety check)
+        if (sectionSpinner.getSelectedItemPosition() == 0) {
+            showSnackbar("Please select a valid section first.");
+            return;
         }
 
         String section = sectionSpinner.getSelectedItem().toString().trim().toUpperCase();
@@ -283,23 +310,33 @@ public class MainActivity extends AppCompatActivity {
         dateText.setText("Date: " + currentDateStorage);
 
         String field = getSelectedTimeSlotField();
-        if (field == null) return;
+        if (field == null) {
+            showSnackbar("Please select a time slot (AM/PM In/Out).");
+            return;
+        }
         statusText.setText("Status: " + field.replace("_", " ").toUpperCase(Locale.getDefault()));
 
         AttendanceRecord localRecord = db.getRecordByStudentID(studentID, currentDateStorage, section);
 
         if (!validateScan(field, localRecord)) {
-            // Log failed attempt (validation error)
-            analyticsManager.logScan(studentID, section, timeSlotFriendlyName, false);
+            // Log failed attempt (validation error like double scan)
+            if (analyticsManager != null) {
+                analyticsManager.logScan(studentID, section, timeSlotFriendlyName, false);
+            }
             return;
         }
 
+        // SAVE TO LOCAL DATABASE
         db.markDetailedAttendance(studentID, studentName, currentDateStorage, section, field, currentTimeDisplay);
 
-        // <--- ADDED: Log Successful Scan to Analytics
-        analyticsManager.logScan(studentID, section, timeSlotFriendlyName, true);
+        // Log Successful Scan to Analytics
+        if (analyticsManager != null) {
+            analyticsManager.logScan(studentID, section, timeSlotFriendlyName, true);
+        }
 
         showConfirmationDialog("Success", "Attendance recorded for:\n\n" + "Name: " + studentName + "\nID Number: " + studentID + "\nSlot: " + timeSlotFriendlyName);
+
+        // Try to sync to cloud immediately
         syncUnsyncedRecords();
     }
 
@@ -415,6 +452,11 @@ public class MainActivity extends AppCompatActivity {
         View rootView = findViewById(android.R.id.content);
         if (rootView != null) Snackbar.make(rootView, message, Snackbar.LENGTH_LONG).show();
         else Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+
+        com.google.android.material.snackbar.Snackbar.make(rootView, message, com.google.android.material.snackbar.Snackbar.LENGTH_LONG)
+                .setBackgroundTint(getColor(R.color.md_theme_secondary)) // Use your theme color!
+                .setTextColor(getColor(R.color.white))
+                .show();
     }
 
     private void updateDateTimeLabels() {

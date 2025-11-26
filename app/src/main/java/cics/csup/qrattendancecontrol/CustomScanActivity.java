@@ -136,7 +136,7 @@ public class CustomScanActivity extends AppCompatActivity {
                             handleBarcodes(barcodes);
                         })
                         .addOnFailureListener(e -> {
-                            Log.e(TAG, "Barcode scanning failed", e);
+                            Log.e(TAG, "QR Code scanning failed", e);
                         })
                         .addOnCompleteListener(task -> {
                             mediaImage.close();
