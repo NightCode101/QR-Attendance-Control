@@ -22,7 +22,7 @@
 
 ---
 
-## 🚀 New in V5 (Complete Overhaul)
+## 🚀 New in V5.1 (Complete Overhaul)
 
 - **⚡ Ultra-Fast Scanning:** Replaced legacy ZXing with **CameraX + ML Kit** for instant QR detection.
 - **☁️ Dynamic Configuration:** Sections and Admin access can be updated instantly via **Firebase Remote Config** without an app update.

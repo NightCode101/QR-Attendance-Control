@@ -5,7 +5,14 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
 import android.graphics.Typeface;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.net.ConnectivityManager;
 import android.net.Network;
@@ -25,6 +32,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.annotation.SuppressLint;
 
+import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.activity.result.ActivityResultLauncher;
@@ -100,6 +108,17 @@ public class HistoryActivity extends AppCompatActivity {
         swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
+
+        androidx.recyclerview.widget.DividerItemDecoration dividerItemDecoration =
+                new androidx.recyclerview.widget.DividerItemDecoration(this, androidx.recyclerview.widget.DividerItemDecoration.VERTICAL);
+
+        android.graphics.drawable.Drawable dividerDrawable = androidx.core.content.ContextCompat.getDrawable(this, R.drawable.divider);
+
+        if (dividerDrawable != null) {
+            dividerItemDecoration.setDrawable(dividerDrawable);
+            recyclerView.addItemDecoration(dividerItemDecoration);
+        }
+
         adapter = new HistoryAdapter(new ArrayList<>());
         recyclerView.setAdapter(adapter);
 
@@ -192,30 +211,80 @@ public class HistoryActivity extends AppCompatActivity {
     }
 
     private void attachSwipeHandler() {
-        ItemTouchHelper.SimpleCallback callback = new ItemTouchHelper.SimpleCallback(0,
-                ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
-            @Override public boolean onMove(@NonNull RecyclerView rv, @NonNull RecyclerView.ViewHolder vh, @NonNull RecyclerView.ViewHolder target) { return false; }
+        // CHANGED: Removed ItemTouchHelper.LEFT, now it only accepts ItemTouchHelper.RIGHT
+        ItemTouchHelper.SimpleCallback callback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT) {
 
-            @Override public void onSwiped(@NonNull RecyclerView.ViewHolder vh, int direction) {
+            // Define colors and icon here so they aren't recreated on every draw frame
+            private final Paint deletePaint = new Paint();
+            private final ColorDrawable deleteBackground = new ColorDrawable(Color.parseColor("#B00020")); // Dark Red
+            private final Drawable deleteIcon = ContextCompat.getDrawable(HistoryActivity.this, R.drawable.ic_delete);
+
+            @Override
+            public boolean onMove(@NonNull RecyclerView rv, @NonNull RecyclerView.ViewHolder vh, @NonNull RecyclerView.ViewHolder target) {
+                return false; // We don't want drag-and-drop moving
+            }
+
+            // This method handles drawing the colored background and icon underneath the swiped item
+            @Override
+            public void onChildDraw(@NonNull Canvas c, @NonNull RecyclerView rv, @NonNull RecyclerView.ViewHolder vh, float dX, float dY, int actionState, boolean isCurrentlyActive) {
+                View itemView = vh.itemView;
+                int iconMargin = (itemView.getHeight() - deleteIcon.getIntrinsicHeight()) / 2;
+
+                // dX > 0 means swiping right. Since we only enabled RIGHT in the constructor,
+                // we only need to handle this case.
+                if (dX > 0) {
+                    // 1. Draw the Red Background
+                    // Bounds: From the left edge of the item to wherever the swipe is currently (dX)
+                    deleteBackground.setBounds(itemView.getLeft(), itemView.getTop(), (int) dX, itemView.getBottom());
+                    deleteBackground.draw(c);
+
+                    // 2. Draw the Icon
+                    // Bounds: Left aligned with some margin, centered vertically
+                    int iconLeft = itemView.getLeft() + iconMargin;
+                    int iconRight = itemView.getLeft() + iconMargin + deleteIcon.getIntrinsicWidth();
+                    int iconTop = itemView.getTop() + iconMargin;
+                    int iconBottom = itemView.getBottom() - iconMargin;
+                    deleteIcon.setBounds(iconLeft, iconTop, iconRight, iconBottom);
+
+                    // Clip the canvas to ensure the icon doesn't draw outside the swiped area if swiped slowly
+                    c.save();
+                    c.clipRect(itemView.getLeft(), itemView.getTop(), dX, itemView.getBottom());
+                    deleteIcon.draw(c);
+                    c.restore();
+                }
+
+                super.onChildDraw(c, rv, vh, dX, dY, actionState, isCurrentlyActive);
+            }
+
+            // This method is triggered when the swipe gesture is fully completed
+            @Override
+            public void onSwiped(@NonNull RecyclerView.ViewHolder vh, int direction) {
+                // direction will always be ItemTouchHelper.RIGHT here
                 int pos = vh.getAdapterPosition();
                 if (pos == RecyclerView.NO_POSITION) return;
 
                 AttendanceRecord rec = adapter.getItem(pos);
 
+                // Show confirmation dialog before actual deletion
                 new AlertDialog.Builder(HistoryActivity.this)
                         .setTitle("Delete Attendance")
-                        .setMessage("Are you sure you want to delete this record?\n\n" + "Name: " + rec.getName() + "\nID Number: " + rec.getStudentID() + "\nSection: " + rec.getSection() + "\nDate: " + rec.getDate() +"\n\nThis action cannot be undone.")
+                        .setMessage("Are you sure you want to delete this record?\n\n" + "Name: " + rec.getName() + "\nID Number: " + rec.getStudentID() + "\nSection: " + rec.getSection() + "\nDate: " + rec.getDate() + "\n\nThis action cannot be undone.")
                         .setPositiveButton("Yes", (d, w) -> {
+                            // Mark hidden in DB
                             dbHelper.setRecordHidden(rec.getId(), true);
+                            // Remove from UI adapter visually
                             adapter.removeItemUIOnly(pos);
                             totalTextView.setText("Total: " + adapter.getItemCount());
                             showSnackbar("Attendance Deleted");
                         })
+                        // If cancelled, snap the item back to its original position
                         .setNegativeButton("Cancel", (d, w) -> adapter.notifyItemChanged(pos))
                         .setCancelable(false)
                         .show();
             }
         };
+
+        // Attach the helper to the RecyclerView
         new ItemTouchHelper(callback).attachToRecyclerView(recyclerView);
     }
 
@@ -426,6 +495,11 @@ public class HistoryActivity extends AppCompatActivity {
         View rootView = findViewById(android.R.id.content);
         if (rootView != null) Snackbar.make(rootView, message, Snackbar.LENGTH_SHORT).show();
         else Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+
+        com.google.android.material.snackbar.Snackbar.make(rootView, message, com.google.android.material.snackbar.Snackbar.LENGTH_LONG)
+                .setBackgroundTint(getColor(R.color.md_theme_secondary)) // Use your theme color!
+                .setTextColor(getColor(R.color.white))
+                .show();
     }
 
     private void applyWindowInsetPadding() {

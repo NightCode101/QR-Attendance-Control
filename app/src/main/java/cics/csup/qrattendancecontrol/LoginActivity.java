@@ -12,6 +12,8 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
+import androidx.core.view.WindowCompat;
 
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
@@ -37,8 +39,8 @@ public class LoginActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        getWindow().setNavigationBarColor(Color.parseColor("#121212"));
-        getWindow().setStatusBarColor(Color.parseColor("#121212"));
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
         View decor = getWindow().getDecorView();
         decor.setSystemUiVisibility(0);
 
@@ -128,5 +130,10 @@ public class LoginActivity extends AppCompatActivity {
         } else {
             Toast.makeText(this, message, Toast.LENGTH_LONG).show();
         }
+
+        com.google.android.material.snackbar.Snackbar.make(rootView, message, com.google.android.material.snackbar.Snackbar.LENGTH_LONG)
+                .setBackgroundTint(getColor(R.color.md_theme_secondary)) // Use your theme color!
+                .setTextColor(getColor(R.color.white))
+                .show();
     }
 }

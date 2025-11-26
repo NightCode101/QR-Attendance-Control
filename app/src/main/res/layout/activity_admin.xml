@@ -16,7 +16,7 @@
         android:text="@string/admin_panel_title"
         android:textStyle="bold"
         android:textSize="20sp"
-        android:textColor="@color/md_theme_onBackground"
+        android:textColor="@color/md_theme_primary"
         android:layout_marginTop="24dp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
