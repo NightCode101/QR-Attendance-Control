@@ -36,6 +36,7 @@ import android.os.Build;
 import androidx.core.app.ActivityCompat;
 import android.Manifest;
 
+import com.google.firebase.BuildConfig;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -400,6 +401,8 @@ public class MainActivity extends AppCompatActivity {
                             uploadData.put("studentID", record.getStudentID());
                             uploadData.put("date", record.getDate());
                             uploadData.put("section", record.getSection());
+                            transaction.set(docRef, uploadData, SetOptions.merge());
+                            uploadData.put("version", "5.1");
                             transaction.set(docRef, uploadData, SetOptions.merge());
                         }
                         return null;
