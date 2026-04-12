@@ -23,21 +23,41 @@
         android:textSize="16sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toStartOf="@+id/textSection"
-        app:layout_constraintHorizontal_weight="0.8"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         tools:text="Student Name" />
 
+    <View
+        android:id="@+id/syncDot"
+        android:layout_width="10dp"
+        android:layout_height="10dp"
+        android:layout_marginEnd="6dp"
+        app:layout_constraintBottom_toBottomOf="@id/textSyncStatus"
+        app:layout_constraintEnd_toStartOf="@id/textSyncStatus"
+        app:layout_constraintTop_toTopOf="@id/textSyncStatus" />
+
+    <TextView
+        android:id="@+id/textSyncStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="0dp"
+        android:textColor="@color/md_theme_onSurfaceVariant"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="@id/textDate"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/textDate"
+        tools:text="Synced" />
+
     <TextView
         android:id="@+id/textSection"
-        android:layout_width="0dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:gravity="end"
-        android:textColor="@color/md_theme_primary"
+        android:textColor="@color/md_theme_onSurface"
         android:textSize="14sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_weight="0.2"
         app:layout_constraintTop_toTopOf="parent"
         tools:text="1A" />
 
@@ -67,7 +87,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="6dp"
-        android:textColor="@color/green_dark"
+        android:textColor="@color/md_theme_onSurfaceVariant"
         android:textSize="14sp"
         app:layout_constraintEnd_toStartOf="@+id/textTimeOutAM"
         app:layout_constraintHorizontal_weight="1"
@@ -80,7 +100,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:gravity="end"
-        android:textColor="@color/md_theme_error"
+        android:textColor="@color/md_theme_onSurfaceVariant"
         android:textSize="14sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_weight="1"
@@ -93,7 +113,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="2dp"
-        android:textColor="@color/blue_primary"
+        android:textColor="@color/md_theme_onSurfaceVariant"
         android:textSize="14sp"
         app:layout_constraintEnd_toStartOf="@+id/textTimeOutPM"
         app:layout_constraintHorizontal_weight="1"
@@ -106,7 +126,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:gravity="end"
-        android:textColor="@color/md_theme_secondary"
+        android:textColor="@color/md_theme_onSurfaceVariant"
         android:textSize="14sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_weight="1"

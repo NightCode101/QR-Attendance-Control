@@ -5,10 +5,10 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public class AttendanceDBHelper extends SQLiteOpenHelper {
 
@@ -69,23 +69,46 @@ public class AttendanceDBHelper extends SQLiteOpenHelper {
 
     public void markDetailedAttendance(String studentID, String studentName, String date, String section, String field, String value) {
         SQLiteDatabase db = this.getWritableDatabase();
-        AttendanceRecord existing = getRecordByStudentID(studentID, date, section);
+        String normalizedStudentId = normalizeStudentId(studentID);
+        String normalizedSection = normalizeSection(section);
+        String normalizedDate = normalizeDate(date);
+        List<AttendanceRecord> matches = getRecordsByCanonicalKey(db, normalizedStudentId, normalizedDate, normalizedSection);
+        AttendanceRecord existing = matches.isEmpty() ? null : matches.get(0);
+
+        String mergedTimeInAm = existing != null ? existing.getTimeInAM() : "-";
+        String mergedTimeOutAm = existing != null ? existing.getTimeOutAM() : "-";
+        String mergedTimeInPm = existing != null ? existing.getTimeInPM() : "-";
+        String mergedTimeOutPm = existing != null ? existing.getTimeOutPM() : "-";
+
+        // Merge values from duplicates created before canonical normalization.
+        for (int i = 1; i < matches.size(); i++) {
+            AttendanceRecord duplicate = matches.get(i);
+            if (isFilled(duplicate.getTimeInAM())) mergedTimeInAm = duplicate.getTimeInAM();
+            if (isFilled(duplicate.getTimeOutAM())) mergedTimeOutAm = duplicate.getTimeOutAM();
+            if (isFilled(duplicate.getTimeInPM())) mergedTimeInPm = duplicate.getTimeInPM();
+            if (isFilled(duplicate.getTimeOutPM())) mergedTimeOutPm = duplicate.getTimeOutPM();
+        }
 
         ContentValues values = new ContentValues();
         values.put(COL_NAME, studentName);
-        values.put(COL_STUDENT_ID, studentID);
-        values.put(COL_DATE, date);
-        values.put(COL_SECTION, section);
+        values.put(COL_STUDENT_ID, normalizedStudentId);
+        values.put(COL_DATE, normalizedDate);
+        values.put(COL_SECTION, normalizedSection);
         values.put(COL_SYNCED, 0);
         values.put(COL_IS_HIDDEN, 0);
+        values.put(COL_TIME_IN_AM, mergedTimeInAm);
+        values.put(COL_TIME_OUT_AM, mergedTimeOutAm);
+        values.put(COL_TIME_IN_PM, mergedTimeInPm);
+        values.put(COL_TIME_OUT_PM, mergedTimeOutPm);
         values.put(field, value);
 
         if (existing == null) {
             db.insertWithOnConflict(TABLE_NAME, null, values, SQLiteDatabase.CONFLICT_IGNORE);
         } else {
-            db.update(TABLE_NAME, values,
-                    COL_STUDENT_ID + "=? AND " + COL_DATE + "=? AND " + COL_SECTION + "=?",
-                    new String[]{studentID, date, section});
+            db.update(TABLE_NAME, values, COL_ID + "=?", new String[]{String.valueOf(existing.getId())});
+            for (int i = 1; i < matches.size(); i++) {
+                db.delete(TABLE_NAME, COL_ID + "=?", new String[]{String.valueOf(matches.get(i).getId())});
+            }
         }
         db.close();
     }
@@ -109,16 +132,96 @@ public class AttendanceDBHelper extends SQLiteOpenHelper {
 
     public AttendanceRecord getRecordByStudentID(String studentID, String date, String section) {
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.query(TABLE_NAME, null,
-                COL_STUDENT_ID + "=? AND " + COL_DATE + "=? AND " + COL_SECTION + "=?",
-                new String[]{studentID, date, section}, null, null, null);
+        List<AttendanceRecord> matches = getRecordsByCanonicalKey(db,
+                normalizeStudentId(studentID),
+                normalizeDate(date),
+                normalizeSection(section));
+        return matches.isEmpty() ? null : matches.get(0);
+    }
 
-        AttendanceRecord record = null;
-        if (cursor != null && cursor.moveToFirst()) {
-            record = cursorToRecord(cursor);
+    private List<AttendanceRecord> getRecordsByCanonicalKey(SQLiteDatabase db, String studentID, String date, String section) {
+        List<AttendanceRecord> records = new ArrayList<>();
+        String selection =
+                "UPPER(REPLACE(TRIM(" + COL_STUDENT_ID + "), ' ', '')) = ? AND " +
+                "TRIM(" + COL_DATE + ") = ? AND " +
+                "UPPER(TRIM(" + COL_SECTION + ")) = ?";
+        String[] args = new String[]{studentID, date, section};
+
+        Cursor cursor = db.query(TABLE_NAME, null, selection, args, null, null, COL_ID + " ASC");
+        if (cursor.moveToFirst()) {
+            do {
+                records.add(cursorToRecord(cursor));
+            } while (cursor.moveToNext());
         }
-        if (cursor != null) cursor.close();
-        return record;
+        cursor.close();
+        return records;
+    }
+
+    private String normalizeStudentId(String studentID) {
+        if (studentID == null) return "";
+        return studentID.replace("\uFEFF", "")
+                .replace("\u0000", "")
+                .replaceAll("\\s+", "")
+                .toUpperCase(Locale.ROOT);
+    }
+
+    private String normalizeSection(String section) {
+        if (section == null) return "";
+        return section.replace("\uFEFF", "").trim().toUpperCase(Locale.ROOT);
+    }
+
+    private String normalizeDate(String date) {
+        return date == null ? "" : date.trim();
+    }
+
+    private boolean isFilled(String value) {
+        return value != null && !value.trim().isEmpty() && !"-".equals(value.trim());
+    }
+
+    public AttendanceRecord findNameIdConflict(String studentName, String date, String section, String currentStudentId) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        AttendanceRecord conflict = null;
+
+        String normalizedName = normalizeStudentName(studentName);
+        String normalizedDate = normalizeDate(date);
+        String normalizedSection = normalizeSection(section);
+        String normalizedStudentId = normalizeStudentId(currentStudentId);
+
+        Cursor cursor = db.query(
+                TABLE_NAME,
+                null,
+                "TRIM(" + COL_DATE + ") = ? AND UPPER(TRIM(" + COL_SECTION + ")) = ?",
+                new String[]{normalizedDate, normalizedSection},
+                null,
+                null,
+                null
+        );
+
+        if (cursor.moveToFirst()) {
+            do {
+                AttendanceRecord record = cursorToRecord(cursor);
+                String recordName = normalizeStudentName(record.getName());
+                String recordStudentId = normalizeStudentId(record.getStudentID());
+
+                if (recordName.equals(normalizedName) && !recordStudentId.equals(normalizedStudentId)) {
+                    conflict = record;
+                    break;
+                }
+            } while (cursor.moveToNext());
+        }
+
+        cursor.close();
+        db.close();
+        return conflict;
+    }
+
+    private String normalizeStudentName(String studentName) {
+        if (studentName == null) return "";
+        return studentName.replace("\uFEFF", "")
+                .replace("\u0000", "")
+                .trim()
+                .replaceAll("\\s{2,}", " ")
+                .toUpperCase(Locale.ROOT);
     }
 
     public List<AttendanceRecord> getUnsyncedRecords() {

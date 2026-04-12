@@ -1,16 +1,13 @@
 package cics.csup.qrattendancecontrol;
 
 import android.app.AlertDialog;
+import android.app.DatePickerDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.PorterDuff;
-import android.graphics.PorterDuffXfermode;
-import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
@@ -21,7 +18,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.text.InputType;
 import android.util.Log;
-import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
@@ -62,6 +59,7 @@ import java.util.function.Consumer;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 
 public class HistoryActivity extends AppCompatActivity {
@@ -75,6 +73,9 @@ public class HistoryActivity extends AppCompatActivity {
     private SwipeRefreshLayout swipeRefreshLayout;
     private ConnectivityManager.NetworkCallback networkCallback;
     private FirebaseFirestore firestore;
+    private TextView dateFilterButton;
+    private Button clearDateFilterButton;
+    private String selectedDateFilter;
 
     private static final String ADMIN_PREFS = "AdminPrefs";
     private static final String ADMIN_KEY = "admin_password";
@@ -103,21 +104,14 @@ public class HistoryActivity extends AppCompatActivity {
         clearHistoryButton = findViewById(R.id.clearHistoryButton);
         exportCSVButton = findViewById(R.id.exportCSVButton);
         syncButton = findViewById(R.id.syncButton);
+        dateFilterButton = findViewById(R.id.dateFilterButton);
+        clearDateFilterButton = findViewById(R.id.clearDateFilterButton);
         searchNameEditText = findViewById(R.id.searchNameEditText);
         totalTextView = findViewById(R.id.totalTextView);
         swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        androidx.recyclerview.widget.DividerItemDecoration dividerItemDecoration =
-                new androidx.recyclerview.widget.DividerItemDecoration(this, androidx.recyclerview.widget.DividerItemDecoration.VERTICAL);
-
-        android.graphics.drawable.Drawable dividerDrawable = androidx.core.content.ContextCompat.getDrawable(this, R.drawable.divider);
-
-        if (dividerDrawable != null) {
-            dividerItemDecoration.setDrawable(dividerDrawable);
-            recyclerView.addItemDecoration(dividerItemDecoration);
-        }
 
         adapter = new HistoryAdapter(new ArrayList<>());
         recyclerView.setAdapter(adapter);
@@ -138,8 +132,34 @@ public class HistoryActivity extends AppCompatActivity {
                 showSnackbar("No internet connection.");
                 return;
             }
-            syncOfflineDataToFirestore();
+            syncOfflineDataToFirestore(true);
         });
+
+        dateFilterButton.setOnClickListener(v -> {
+            final Calendar calendar = Calendar.getInstance();
+            DatePickerDialog picker = new DatePickerDialog(
+                    HistoryActivity.this,
+                    (view, year, month, dayOfMonth) -> {
+                        Calendar picked = Calendar.getInstance();
+                        picked.set(year, month, dayOfMonth);
+                        selectedDateFilter = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(picked.getTime());
+                        updateDateFilterButtons();
+                        loadHistory(searchNameEditText.getText().toString());
+                    },
+                    calendar.get(Calendar.YEAR),
+                    calendar.get(Calendar.MONTH),
+                    calendar.get(Calendar.DAY_OF_MONTH)
+            );
+            picker.show();
+        });
+
+        clearDateFilterButton.setOnClickListener(v -> {
+            selectedDateFilter = null;
+            updateDateFilterButtons();
+            loadHistory(searchNameEditText.getText().toString());
+        });
+
+        updateDateFilterButtons();
 
         clearHistoryButton.setOnClickListener(v -> {
             if (adapter.getItemCount() == 0) {
@@ -205,9 +225,31 @@ public class HistoryActivity extends AppCompatActivity {
 
     private void loadHistory(String nameFilter) {
         List<AttendanceRecord> records = dbHelper.getVisibleAttendanceRecords(nameFilter);
+        if (selectedDateFilter != null && !selectedDateFilter.trim().isEmpty()) {
+            List<AttendanceRecord> filteredByDate = new ArrayList<>();
+            for (AttendanceRecord record : records) {
+                if (selectedDateFilter.equals(record.getDate())) {
+                    filteredByDate.add(record);
+                }
+            }
+            records = filteredByDate;
+        }
         adapter.setList(records);
         totalTextView.setText("Total: " + records.size());
         updateButtonStates();
+    }
+
+    private void updateDateFilterButtons() {
+        if (selectedDateFilter == null || selectedDateFilter.trim().isEmpty()) {
+            dateFilterButton.setText(getString(R.string.history_filter_date));
+            clearDateFilterButton.setEnabled(false);
+            clearDateFilterButton.setAlpha(0.6f);
+            return;
+        }
+
+        dateFilterButton.setText(selectedDateFilter);
+        clearDateFilterButton.setEnabled(true);
+        clearDateFilterButton.setAlpha(1f);
     }
 
     private void attachSwipeHandler() {
@@ -215,7 +257,6 @@ public class HistoryActivity extends AppCompatActivity {
         ItemTouchHelper.SimpleCallback callback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.RIGHT) {
 
             // Define colors and icon here so they aren't recreated on every draw frame
-            private final Paint deletePaint = new Paint();
             private final ColorDrawable deleteBackground = new ColorDrawable(Color.parseColor("#B00020")); // Dark Red
             private final Drawable deleteIcon = ContextCompat.getDrawable(HistoryActivity.this, R.drawable.ic_delete);
 
@@ -319,7 +360,7 @@ public class HistoryActivity extends AppCompatActivity {
         container.addView(input);
 
         TextView errorText = new TextView(this);
-        errorText.setTextColor(getResources().getColor(R.color.md_theme_error));
+        errorText.setTextColor(ContextCompat.getColor(this, R.color.md_theme_error));
         errorText.setVisibility(View.GONE);
         container.addView(errorText);
 
@@ -354,10 +395,10 @@ public class HistoryActivity extends AppCompatActivity {
         dialog.show();
     }
 
-    private void syncOfflineDataToFirestore() {
+    private void syncOfflineDataToFirestore(boolean showFeedback) {
         List<AttendanceRecord> unsynced = dbHelper.getUnsyncedRecords();
         if (unsynced.isEmpty()) {
-            showSnackbar("All records are already uploaded.");
+            if (showFeedback) showSnackbar("All records are already uploaded.");
             return;
         }
 
@@ -375,14 +416,14 @@ public class HistoryActivity extends AppCompatActivity {
                         uploaded[0]++; done[0]++;
                         if (done[0] == total) {
                             loadHistory(searchNameEditText.getText().toString());
-                            showSnackbar(uploaded[0] + " records uploaded.");
+                            if (showFeedback) showSnackbar(uploaded[0] + " records uploaded.");
                         }
                     })
                     .addOnFailureListener(e -> {
                         done[0]++;
                         if (done[0] == total) {
                             loadHistory(searchNameEditText.getText().toString());
-                            showSnackbar(uploaded[0] + " records uploaded, some failed.");
+                            if (showFeedback) showSnackbar(uploaded[0] + " records uploaded, some failed.");
                         }
                         Log.e("HistorySync", "Failed to sync record: " + docId, e);
                     });
@@ -408,7 +449,7 @@ public class HistoryActivity extends AppCompatActivity {
             @Override public void onAvailable(Network network) {
                 runOnUiThread(() -> {
                     updateButtonStates();
-                    syncOfflineDataToFirestore();
+                    syncOfflineDataToFirestore(false);
                     fetchAndCacheAdminPassword();
                 });
             }
@@ -493,11 +534,13 @@ public class HistoryActivity extends AppCompatActivity {
 
     private void showSnackbar(String message) {
         View rootView = findViewById(android.R.id.content);
-        if (rootView != null) Snackbar.make(rootView, message, Snackbar.LENGTH_SHORT).show();
-        else Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+        if (rootView == null) {
+            Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+            return;
+        }
 
-        com.google.android.material.snackbar.Snackbar.make(rootView, message, com.google.android.material.snackbar.Snackbar.LENGTH_LONG)
-                .setBackgroundTint(getColor(R.color.md_theme_secondary)) // Use your theme color!
+        Snackbar.make(rootView, message, Snackbar.LENGTH_SHORT)
+                .setBackgroundTint(getColor(R.color.md_theme_secondary))
                 .setTextColor(getColor(R.color.white))
                 .show();
     }
@@ -521,54 +564,44 @@ public class HistoryActivity extends AppCompatActivity {
         HistoryAdapter(List<AttendanceRecord> initial) { this.list = new ArrayList<>(initial); }
 
         @NonNull @Override public Holder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            LinearLayout row = new LinearLayout(parent.getContext());
-            row.setOrientation(LinearLayout.HORIZONTAL);
-            row.setPadding(16, 24, 16, 24);
-            row.setGravity(Gravity.CENTER_VERTICAL);
-
-            View dot = new View(parent.getContext());
-            int size = 24;
-            LinearLayout.LayoutParams dotParams = new LinearLayout.LayoutParams(size, size);
-            dotParams.setMargins(0, 0, 24, 0);
-            dot.setLayoutParams(dotParams);
-
-            TextView text = new TextView(parent.getContext());
-            text.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-            text.setTextSize(15);
-            text.setTypeface(Typeface.MONOSPACE);
-            row.addView(dot);
-            row.addView(text);
-            return new Holder(row, dot, text);
+            View itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_attendance, parent, false);
+            return new Holder(itemView);
         }
 
         @Override
         public void onBindViewHolder(@NonNull Holder h, int pos) {
             AttendanceRecord r = list.get(pos);
-            GradientDrawable circle = new GradientDrawable();
-            circle.setShape(GradientDrawable.OVAL);
-            circle.setColor(r.isSynced() ? getResources().getColor(R.color.green_dark) : getResources().getColor(R.color.md_theme_error));
-            h.dot.setBackground(circle);
+            GradientDrawable dot = new GradientDrawable();
+            dot.setShape(GradientDrawable.OVAL);
+            dot.setColor(getColor(r.isSynced() ? R.color.status_dot_synced : R.color.status_dot_pending));
+            h.syncDot.setBackground(dot);
+            h.textSyncStatus.setText(r.isSynced() ? R.string.history_sync_synced : R.string.history_sync_pending);
+            h.textSyncStatus.setTextColor(getColor(r.isSynced() ? R.color.green_dark : R.color.md_theme_onSurfaceVariant));
 
-            h.text.setText(String.format(Locale.getDefault(),
-                    "%s\nDate: %s\nSection: %s\nTime In AM: %s\nTime Out AM: %s\nTime In PM: %s\nTime Out PM: %s",
-                    r.getName(), r.getDate(), r.getSection(),
-                    r.getFieldValue("time_in_am"),
-                    r.getFieldValue("time_out_am"),
-                    r.getFieldValue("time_in_pm"),
-                    r.getFieldValue("time_out_pm")));
+            h.textName.setText(r.getName());
+            h.textDate.setText("Date: " + r.getDate());
+            h.textSection.setText(r.getSection());
+            h.textSection.setTextColor(getColor(R.color.md_theme_onSurface));
+            h.textTimeInAM.setText("IN AM: " + r.getFieldValue("time_in_am"));
+            h.textTimeOutAM.setText("OUT AM: " + r.getFieldValue("time_out_am"));
+            h.textTimeInPM.setText("IN PM: " + r.getFieldValue("time_in_pm"));
+            h.textTimeOutPM.setText("OUT PM: " + r.getFieldValue("time_out_pm"));
 
             h.itemView.setOnLongClickListener(v -> {
+                int currentPos = h.getAdapterPosition();
+                if (currentPos == RecyclerView.NO_POSITION) return false;
+
                 promptAdminPasswordAndPerform("Delete Attendance (Admin)",
                         "Enter admin password to permanently delete this record.",
                         false, ok -> {
                             if (ok) {
                                 dbHelper.deleteAttendanceById(r.getId());
-                                list.remove(pos);
-                                notifyItemRemoved(pos);
+                                list.remove(currentPos);
+                                notifyItemRemoved(currentPos);
                                 totalTextView.setText("Total: " + list.size());
                                 showSnackbar("Record permanently deleted.");
                             } else {
-                                notifyItemChanged(pos);
+                                notifyItemChanged(currentPos);
                             }
                         });
                 return true;
@@ -596,8 +629,28 @@ public class HistoryActivity extends AppCompatActivity {
         }
 
         class Holder extends RecyclerView.ViewHolder {
-            View dot; TextView text;
-            Holder(@NonNull View item, View dot, TextView text) { super(item); this.dot = dot; this.text = text; }
+            View syncDot;
+            TextView textSyncStatus;
+            TextView textName;
+            TextView textSection;
+            TextView textDate;
+            TextView textTimeInAM;
+            TextView textTimeOutAM;
+            TextView textTimeInPM;
+            TextView textTimeOutPM;
+
+            Holder(@NonNull View item) {
+                super(item);
+                syncDot = item.findViewById(R.id.syncDot);
+                textSyncStatus = item.findViewById(R.id.textSyncStatus);
+                textName = item.findViewById(R.id.textName);
+                textSection = item.findViewById(R.id.textSection);
+                textDate = item.findViewById(R.id.textDate);
+                textTimeInAM = item.findViewById(R.id.textTimeInAM);
+                textTimeOutAM = item.findViewById(R.id.textTimeOutAM);
+                textTimeInPM = item.findViewById(R.id.textTimeInPM);
+                textTimeOutPM = item.findViewById(R.id.textTimeOutPM);
+            }
         }
     }
 }

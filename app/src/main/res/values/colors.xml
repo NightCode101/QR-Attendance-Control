@@ -26,5 +26,6 @@
     <color name="radio_checked">#e59e02</color>
     <color name="hint_text_color">#fd7f09</color>
     <color name="status_dot_synced">#4CAF50</color>
+    <color name="status_dot_pending">#C48A5A</color>
     <color name="toast_background">#A9E59E02</color>
 </resources>
