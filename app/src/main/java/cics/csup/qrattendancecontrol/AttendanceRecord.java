@@ -101,9 +101,13 @@ public class AttendanceRecord {
     }
 
     public String getIdHash() {
-        String safeID = studentID != null ? studentID.replaceAll("[^a-zA-Z0-9-]", "_") : "unknown";
-        String safeSection = section != null ? section.replaceAll("\\s+", "_").toLowerCase(Locale.getDefault()) : "nosection";
-        String safeDate = date != null ? date.replaceAll("\\s+", "_").toLowerCase(Locale.getDefault()) : "nodate";
+        String normalizedId = studentID == null ? "" : studentID.replace("\uFEFF", "").replace("\u0000", "").replaceAll("\\s+", "").toUpperCase(Locale.ROOT);
+        String normalizedSection = section == null ? "" : section.replace("\uFEFF", "").trim().toUpperCase(Locale.ROOT);
+        String normalizedDate = date == null ? "" : date.trim();
+
+        String safeID = normalizedId.isEmpty() ? "unknown" : normalizedId.replaceAll("[^a-zA-Z0-9-]", "_");
+        String safeSection = normalizedSection.isEmpty() ? "nosection" : normalizedSection.replaceAll("\\s+", "_").toLowerCase(Locale.ROOT);
+        String safeDate = normalizedDate.isEmpty() ? "nodate" : normalizedDate.replaceAll("\\s+", "_").toLowerCase(Locale.ROOT);
         return safeID + "_" + safeDate + "_" + safeSection;
     }
 }

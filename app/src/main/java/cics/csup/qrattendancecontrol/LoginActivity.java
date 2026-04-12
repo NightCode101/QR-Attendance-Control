@@ -125,14 +125,13 @@ public class LoginActivity extends AppCompatActivity {
 
     private void showSnackbar(String message) {
         View rootView = findViewById(android.R.id.content);
-        if (rootView != null) {
-            Snackbar.make(rootView, message, Snackbar.LENGTH_LONG).show();
-        } else {
+        if (rootView == null) {
             Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+            return;
         }
 
-        com.google.android.material.snackbar.Snackbar.make(rootView, message, com.google.android.material.snackbar.Snackbar.LENGTH_LONG)
-                .setBackgroundTint(getColor(R.color.md_theme_secondary)) // Use your theme color!
+        Snackbar.make(rootView, message, Snackbar.LENGTH_SHORT)
+                .setBackgroundTint(getColor(R.color.md_theme_secondary))
                 .setTextColor(getColor(R.color.white))
                 .show();
     }

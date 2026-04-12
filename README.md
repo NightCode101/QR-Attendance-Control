@@ -22,12 +22,12 @@
 
 ---
 
-## 🚀 New in V5.1 (Complete Overhaul)
+## 🚀 New in V6.0 (NFC Integration Update)
 
-- **⚡ Ultra-Fast Scanning:** Replaced legacy ZXing with **CameraX + ML Kit** for instant QR detection.
-- **☁️ Dynamic Configuration:** Sections and Admin access can be updated instantly via **Firebase Remote Config** without an app update.
-- **📊 Data Analytics:** Built-in charts to visualize attendance trends per year level.
-- **🔔 Cloud Messaging:** Receive admin announcements via Push Notifications.
+- **📶 Dedicated RFID/NFC Screen:** Added a focused RFID scanner flow with continuous scanning support.
+- **🪪 Contactless Attendance:** Improved NFC card reading and parsing for faster tap-based check-ins.
+- **🧠 Safer Attendance Logic:** QR and RFID now share normalized ID handling to reduce split records.
+- **🎨 UI Polish:** Refined scanner visuals, button consistency, and improved overall scan UX.
 
 ---
 
@@ -93,13 +93,15 @@ Click below to grab the latest version:
 
 ## 🖼 Screenshots
 
-| Main Menu                        | Scanner Interface                |
-|----------------------------------|----------------------------------|
-| ![Main Menu](UI-Home.png)        | ![Scanner](UI-Scan.png)          |
-| **Admin Panel**                  | **History Panel**                |
-| ![Admin Panel](UI-Admin.png)     | ![History](UI-History.png)       |
-| **Login Interface**              | **Analytics Graph**              |
-| ![Login Interface](UI-Login.png) | ![Analytics Graph](UI-Graph.png) |
+| Main Menu                 | Scanner Interface       |
+|---------------------------|-------------------------|
+| ![Main Menu](UI-Home.png) | ![Scanner](UI-Scan.png) |
+| **Admin Panel**           | **History Panel**       |
+| ![Admin Panel](UI-Admin.png) | ![History](UI-History.png) |
+
+**Login Interface**
+
+![Login Interface](UI-Login.png)
 
 ---
 

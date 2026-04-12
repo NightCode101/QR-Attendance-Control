@@ -19,7 +19,6 @@ import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.camera.view.PreviewView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.lifecycle.LifecycleOwner;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.slider.Slider;
@@ -50,6 +49,7 @@ public class CustomScanActivity extends AppCompatActivity {
     private Camera camera;
     private BarcodeScanner barcodeScanner;
     private boolean isFlashOn = false;
+    private volatile boolean scanHandled = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -101,6 +101,10 @@ public class CustomScanActivity extends AppCompatActivity {
         cameraProviderFuture.addListener(() -> {
             try {
                 ProcessCameraProvider cameraProvider = cameraProviderFuture.get();
+                if (cameraProvider == null) {
+                    Log.e(TAG, "Camera provider is null");
+                    return;
+                }
                 bindCameraUseCases(cameraProvider);
             } catch (Exception e) {
                 Log.e(TAG, "Failed to start camera", e);
@@ -127,28 +131,29 @@ public class CustomScanActivity extends AppCompatActivity {
         barcodeScanner = BarcodeScanning.getClient(options);
 
         imageAnalysis.setAnalyzer(cameraExecutor, image -> {
-            android.media.Image mediaImage = image.getImage();
-            if (mediaImage != null) {
-                InputImage inputImage = InputImage.fromMediaImage(mediaImage, image.getImageInfo().getRotationDegrees());
-
-                barcodeScanner.process(inputImage)
-                        .addOnSuccessListener(barcodes -> {
-                            handleBarcodes(barcodes);
-                        })
-                        .addOnFailureListener(e -> {
-                            Log.e(TAG, "QR Code scanning failed", e);
-                        })
-                        .addOnCompleteListener(task -> {
-                            mediaImage.close();
-                            image.close();
-                        });
+            if (scanHandled) {
+                image.close();
+                return;
             }
+
+            android.media.Image mediaImage = image.getImage();
+            if (mediaImage == null) {
+                image.close();
+                return;
+            }
+
+            InputImage inputImage = InputImage.fromMediaImage(mediaImage, image.getImageInfo().getRotationDegrees());
+
+            barcodeScanner.process(inputImage)
+                    .addOnSuccessListener(this::handleBarcodes)
+                    .addOnFailureListener(e -> Log.e(TAG, "QR Code scanning failed", e))
+                    .addOnCompleteListener(task -> image.close());
         });
 
         try {
             cameraProvider.unbindAll();
             camera = cameraProvider.bindToLifecycle(
-                    (LifecycleOwner) this,
+                    this,
                     cameraSelector,
                     preview,
                     imageAnalysis
@@ -160,13 +165,18 @@ public class CustomScanActivity extends AppCompatActivity {
     }
 
     private void handleBarcodes(List<Barcode> barcodes) {
-        if (barcodes.isEmpty()) return;
+        if (barcodes.isEmpty() || scanHandled) return;
 
         for (Barcode barcode : barcodes) {
             String rawValue = barcode.getRawValue();
             if (rawValue != null) {
-                cameraExecutor.shutdown();
-                barcodeScanner.close();
+                scanHandled = true;
+                if (cameraExecutor != null && !cameraExecutor.isShutdown()) {
+                    cameraExecutor.shutdown();
+                }
+                if (barcodeScanner != null) {
+                    barcodeScanner.close();
+                }
 
                 Intent resultIntent = new Intent();
                 resultIntent.putExtra("SCAN_RESULT", rawValue);
@@ -214,7 +224,9 @@ public class CustomScanActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        cameraExecutor.shutdown();
+        if (cameraExecutor != null && !cameraExecutor.isShutdown()) {
+            cameraExecutor.shutdown();
+        }
         if (barcodeScanner != null) {
             barcodeScanner.close();
         }

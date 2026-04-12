@@ -3,6 +3,7 @@ package cics.csup.qrattendancecontrol;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.app.DatePickerDialog;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
@@ -38,8 +39,10 @@ import com.google.firebase.firestore.Query;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -50,10 +53,13 @@ public class AdminActivity extends AppCompatActivity {
     private List<AttendanceRecord> attendanceList;
     private FirebaseFirestore firestore;
     private SwipeRefreshLayout swipeRefreshLayout;
-    private Spinner sectionSpinner, daySpinner, monthSpinner, yearSpinner;
+    private Spinner sectionSpinner;
     private TextView totalCountText;
+    private TextView dateFilterButton;
+    private MaterialButton clearDateFilterButton;
     private AdminCacheDBHelper cacheDB;
     private ConfigHelper configHelper; // 1. Added ConfigHelper
+    private String selectedDateFilter;
 
     private ListenerRegistration firestoreListener;
     private EditText searchNameEditText;
@@ -70,9 +76,8 @@ public class AdminActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.recyclerView);
         swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout);
         sectionSpinner = findViewById(R.id.sectionSpinner);
-        daySpinner = findViewById(R.id.daySpinner);
-        monthSpinner = findViewById(R.id.monthSpinner);
-        yearSpinner = findViewById(R.id.yearSpinner);
+        dateFilterButton = findViewById(R.id.dateFilterButton);
+        clearDateFilterButton = findViewById(R.id.clearDateFilterButton);
         totalCountText = findViewById(R.id.totalCountText);
         searchNameEditText = findViewById(R.id.searchNameEditText);
 
@@ -85,7 +90,7 @@ public class AdminActivity extends AppCompatActivity {
         cacheDB = new AdminCacheDBHelper(this);
 
         setupSectionSpinner(); // Now calls the updated method
-        setupDateFilters();
+        setupDateFilter();
 
         searchNameEditText.addTextChangedListener(new android.text.TextWatcher() {
             @Override
@@ -115,8 +120,8 @@ public class AdminActivity extends AppCompatActivity {
                     .setNegativeButton("Cancel", (dialogInterface, which) -> dialogInterface.dismiss())
                     .create();
             dialog.show();
-            dialog.getButton(DialogInterface.BUTTON_POSITIVE).setTextColor(getResources().getColor(R.color.md_theme_error));
-            dialog.getButton(DialogInterface.BUTTON_NEGATIVE).setTextColor(getResources().getColor(R.color.md_theme_onSurfaceVariant));
+            dialog.getButton(DialogInterface.BUTTON_POSITIVE).setTextColor(ContextCompat.getColor(this, R.color.md_theme_error));
+            dialog.getButton(DialogInterface.BUTTON_NEGATIVE).setTextColor(ContextCompat.getColor(this, R.color.md_theme_onSurfaceVariant));
         });
 
         MaterialButton exportButton = findViewById(R.id.button_export_csv);
@@ -164,7 +169,7 @@ public class AdminActivity extends AppCompatActivity {
                 }
             }
 
-            ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, R.layout.custom_spinner_item, adminSections) {
+            ArrayAdapter<String> adapter = new ArrayAdapter<>(this, R.layout.custom_spinner_item, adminSections) {
                 @Override
                 public View getDropDownView(int position, View convertView, ViewGroup parent) {
                     View view = super.getDropDownView(position, convertView, parent);
@@ -186,30 +191,47 @@ public class AdminActivity extends AppCompatActivity {
         });
     }
 
-    private void setupDateFilters() {
-        ArrayAdapter<String> dayAdapter = new ArrayAdapter<>(this, R.layout.custom_spinner_item, generateRange(1, 31, "Day"));
-        dayAdapter.setDropDownViewResource(R.layout.custom_spinner_dropdown_item);
-        ArrayAdapter<String> monthAdapter = new ArrayAdapter<>(this, R.layout.custom_spinner_item, generateRange(1, 12, "Month"));
-        monthAdapter.setDropDownViewResource(R.layout.custom_spinner_dropdown_item);
-        ArrayAdapter<String> yearAdapter = new ArrayAdapter<>(this, R.layout.custom_spinner_item, generateRange(2023, 2033, "Year"));
-        yearAdapter.setDropDownViewResource(R.layout.custom_spinner_dropdown_item);
-        daySpinner.setAdapter(dayAdapter);
-        monthSpinner.setAdapter(monthAdapter);
-        yearSpinner.setAdapter(yearAdapter);
-        AdapterView.OnItemSelectedListener dateListener = new AdapterView.OnItemSelectedListener() {
-            @Override public void onItemSelected(AdapterView<?> parent, android.view.View view, int position, long id) { filterRecords(); }
-            @Override public void onNothingSelected(AdapterView<?> parent) {}
-        };
-        daySpinner.setOnItemSelectedListener(dateListener);
-        monthSpinner.setOnItemSelectedListener(dateListener);
-        yearSpinner.setOnItemSelectedListener(dateListener);
+    private void setupDateFilter() {
+        dateFilterButton.setOnClickListener(v -> {
+            Calendar calendar = Calendar.getInstance();
+            DatePickerDialog picker = new DatePickerDialog(
+                    AdminActivity.this,
+                    (view, year, month, dayOfMonth) -> {
+                        Calendar picked = Calendar.getInstance();
+                        picked.set(year, month, dayOfMonth);
+                        selectedDateFilter = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(picked.getTime());
+                        updateDateFilterButtons();
+                        filterRecords();
+                    },
+                    calendar.get(Calendar.YEAR),
+                    calendar.get(Calendar.MONTH),
+                    calendar.get(Calendar.DAY_OF_MONTH)
+            );
+            picker.show();
+        });
+
+        clearDateFilterButton.setOnClickListener(v -> {
+            selectedDateFilter = null;
+            updateDateFilterButtons();
+            filterRecords();
+        });
+
+        updateDateFilterButtons();
     }
 
-    private List<String> generateRange(int start, int end, String label) {
-        List<String> list = new ArrayList<>();
-        list.add(label);
-        for (int i = start; i <= end; i++) list.add(String.valueOf(i));
-        return list;
+    private void updateDateFilterButtons() {
+        if (selectedDateFilter == null || selectedDateFilter.trim().isEmpty()) {
+            dateFilterButton.setText(getString(R.string.admin_filter_date));
+            dateFilterButton.setTextColor(getColor(R.color.hint_text_color));
+            clearDateFilterButton.setEnabled(false);
+            clearDateFilterButton.setAlpha(0.6f);
+            return;
+        }
+
+        dateFilterButton.setText(selectedDateFilter);
+        dateFilterButton.setTextColor(getColor(R.color.md_theme_onSurface));
+        clearDateFilterButton.setEnabled(true);
+        clearDateFilterButton.setAlpha(1f);
     }
 
     private void loadFromFirestoreAndCache() {
@@ -275,12 +297,11 @@ public class AdminActivity extends AppCompatActivity {
         if (attendanceList == null) return;
 
         // Check if adapter has data before getting selected item to avoid crashes
-        if (sectionSpinner.getSelectedItem() == null) return;
+        if (sectionSpinner.getSelectedItem() == null) {
+            return;
+        }
 
         String selectedSection = sectionSpinner.getSelectedItem().toString();
-        String selectedDay = daySpinner.getSelectedItem().toString();
-        String selectedMonth = monthSpinner.getSelectedItem().toString();
-        String selectedYear = yearSpinner.getSelectedItem().toString();
         String searchQuery = searchNameEditText.getText().toString().toLowerCase().trim();
 
         List<AttendanceRecord> filtered = new ArrayList<>();
@@ -297,18 +318,9 @@ public class AdminActivity extends AppCompatActivity {
                 if (!name.contains(searchQuery) && !studentID.contains(searchQuery)) matches = false;
             }
 
-            if (matches && !selectedYear.equals("Year")) {
-                if (!date.startsWith(selectedYear)) matches = false;
-            }
-
-            if (matches && !selectedMonth.equals("Month")) {
-                String monthNum = String.format(Locale.getDefault(), "-%02d-", Integer.parseInt(selectedMonth));
-                if (!date.contains(monthNum)) matches = false;
-            }
-
-            if (matches && !selectedDay.equals("Day")) {
-                String dayNum = String.format(Locale.getDefault(), "-%02d", Integer.parseInt(selectedDay));
-                if (!date.endsWith(dayNum)) matches = false;
+            if (matches && selectedDateFilter != null && !selectedDateFilter.trim().isEmpty()) {
+                String normalizedDate = normalizeDateForFilter(date);
+                if (!selectedDateFilter.equals(normalizedDate)) matches = false;
             }
 
             if (matches) filtered.add(record);
@@ -316,6 +328,37 @@ public class AdminActivity extends AppCompatActivity {
 
         adapter.submitList(filtered);
         updateTotalCount(filtered);
+    }
+
+    private String normalizeDateForFilter(String dateText) {
+        if (dateText == null) return null;
+        Date parsedDate = parseDate(dateText.trim());
+        if (parsedDate == null) return null;
+        return new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(parsedDate);
+    }
+
+    private Date parseDate(String rawDate) {
+        if (rawDate.isEmpty() || rawDate.equals("-")) return null;
+
+        String[] patterns = {
+                "yyyy-MM-dd",
+                "yyyy-M-d",
+                "MM/dd/yyyy",
+                "M/d/yyyy",
+                "MMM d, yyyy",
+                "MMMM d, yyyy"
+        };
+
+        for (String pattern : patterns) {
+            SimpleDateFormat sdf = new SimpleDateFormat(pattern, Locale.getDefault());
+            sdf.setLenient(false);
+            try {
+                return sdf.parse(rawDate);
+            } catch (ParseException ignored) {
+                // Try next known date format
+            }
+        }
+        return null;
     }
 
     private void confirmDelete(AttendanceRecord record) {
@@ -337,8 +380,8 @@ public class AdminActivity extends AppCompatActivity {
                 .create();
 
         dialog.show();
-        dialog.getButton(DialogInterface.BUTTON_POSITIVE).setTextColor(getResources().getColor(R.color.md_theme_error));
-        dialog.getButton(DialogInterface.BUTTON_NEGATIVE).setTextColor(getResources().getColor(R.color.md_theme_onSurfaceVariant));
+        dialog.getButton(DialogInterface.BUTTON_POSITIVE).setTextColor(ContextCompat.getColor(this, R.color.md_theme_error));
+        dialog.getButton(DialogInterface.BUTTON_NEGATIVE).setTextColor(ContextCompat.getColor(this, R.color.md_theme_onSurfaceVariant));
     }
 
     private void updateTotalCount(List<AttendanceRecord> list) {
@@ -360,7 +403,7 @@ public class AdminActivity extends AppCompatActivity {
     public void exportToCSV(View view) {
         try {
             List<AttendanceRecord> exportList = adapter.getCurrentList();
-            if (exportList == null || exportList.isEmpty()) {
+            if (exportList.isEmpty()) {
                 showSnackbar("No records to export.");
                 return;
             }
@@ -407,11 +450,13 @@ public class AdminActivity extends AppCompatActivity {
 
     private void showSnackbar(String message) {
         View rootView = findViewById(android.R.id.content);
-        if (rootView != null) Snackbar.make(rootView, message, Snackbar.LENGTH_SHORT).show();
-        else Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+        if (rootView == null) {
+            Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+            return;
+        }
 
-        com.google.android.material.snackbar.Snackbar.make(rootView, message, com.google.android.material.snackbar.Snackbar.LENGTH_LONG)
-                .setBackgroundTint(getColor(R.color.md_theme_secondary)) // Use your theme color!
+        Snackbar.make(rootView, message, Snackbar.LENGTH_SHORT)
+                .setBackgroundTint(getColor(R.color.md_theme_secondary))
                 .setTextColor(getColor(R.color.white))
                 .show();
     }
