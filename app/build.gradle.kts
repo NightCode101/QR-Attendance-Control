@@ -27,6 +27,17 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+
+    applicationVariants.all {
+        if (buildType.name == "release") {
+            outputs.all {
+                @Suppress("DEPRECATION")
+                val outputImpl = this as com.android.build.gradle.internal.api.BaseVariantOutputImpl
+                val resolvedVersion = versionName ?: versionCode.toString()
+                outputImpl.outputFileName = "CICS_QR_Attendance_Control_${resolvedVersion}.apk"
+            }
+        }
+    }
 }
 
 dependencies {
