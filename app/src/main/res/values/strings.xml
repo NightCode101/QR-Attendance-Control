@@ -16,6 +16,7 @@
     <string name="clear_history">Clear List</string>
     <string name="admin_panel">Admin Panel</string>
     <string name="button_show_chart">Show Attendance Chart</string>
+    <string name="about_section">About</string>
 
     <string name="admin_login">Admin Login</string>
     <string name="email">Email</string>
@@ -53,6 +54,18 @@
     <string name="done">Done</string>
     <string name="scanner_button_flash">Flash</string>
     <string name="creator_credit">💗 Created by: Jeylo Baoit</string>
+    <string name="about_title">About</string>
+    <string name="about_back">Back</string>
+    <string name="about_credits_title">Credits</string>
+    <string name="about_credits_content">Created and maintained by Jeylo Baoit\n\nCICS QR Attendance Control Team\nThanks to all testers and contributors.</string>
+    <string name="about_version_title">App Version</string>
+    <string name="about_version_format">Version %1$s (%2$d)</string>
+    <string name="about_version_fallback">Version unavailable</string>
+    <string name="about_last_updated_title">Last updated</string>
+    <string name="about_last_updated_content">April 16, 2026</string>
+    <string name="about_last_updated_fallback_format">Version %1$s - Build date %2$s</string>
+    <string name="about_changelog_title">Changelog</string>
+    <string name="about_changelog_content">V6.0\n- Dedicated RFID/NFC scan screen\n- Improved QR + NFC unified attendance logic\n- Better scanner UI consistency\n\nV5.x\n- History and admin UI improvements\n- Date filtering and sync indicators\n\nV4.x and below\n- Core QR attendance, local storage, and cloud sync foundation</string>
 
     <string name="time_am">AM</string>
     <string name="time_pm">PM</string>

@@ -148,6 +148,18 @@
                 android:textSize="13sp"
                 app:cornerRadius="8dp" />
 
+            <!-- About Button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/aboutButton"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginBottom="8dp"
+                android:paddingVertical="0dp"
+                android:text="@string/about_section"
+                android:backgroundTint="@color/md_theme_primary"
+                android:textSize="13sp"
+                app:cornerRadius="8dp" />
+
             <!-- Graph Button Currently Disabled -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/graphButton"

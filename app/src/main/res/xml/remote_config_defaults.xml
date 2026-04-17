@@ -9,4 +9,44 @@
         <key>sections_list</key>
         <value>["Select a Section", "1A", "1B", "1C", "1D", "2A", "2B", "2C", "3A", "3B", "3C", "4A", "4B", "4C", "COLSC", "TESTING PURPOSES"]</value>
     </entry>
+
+    <entry>
+        <key>about_changelog</key>
+        <value>V6.0\n- Dedicated RFID/NFC scan screen\n- Improved QR + NFC unified attendance logic\n- Better scanner UI consistency\n\nV5.x\n- History and admin UI improvements\n- Date filtering and sync indicators\n\nV4.x and below\n- Core QR attendance, local storage, and cloud sync foundation</value>
+    </entry>
+
+    <entry>
+        <key>about_credits</key>
+        <value>Created and maintained by Jeylo Baoit\n\nCICS QR Attendance Control Team\nThanks to all testers and contributors.</value>
+    </entry>
+
+    <entry>
+        <key>about_title</key>
+        <value>About</value>
+    </entry>
+
+    <entry>
+        <key>about_credits_title</key>
+        <value>Credits</value>
+    </entry>
+
+    <entry>
+        <key>about_version_title</key>
+        <value>App Version</value>
+    </entry>
+
+    <entry>
+        <key>about_last_updated_title</key>
+        <value>Last updated</value>
+    </entry>
+
+    <entry>
+        <key>about_last_updated</key>
+        <value></value>
+    </entry>
+
+    <entry>
+        <key>about_changelog_title</key>
+        <value>Changelog</value>
+    </entry>
 </defaultsMap>

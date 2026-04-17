@@ -27,7 +27,7 @@
             android:contentDescription="@string/about_back"
             android:padding="8dp"
             android:src="@android:drawable/ic_media_previous"
-            android:tint="@color/md_theme_primary" />
+            app:tint="@color/md_theme_primary" />
 
         <TextView
             android:id="@+id/aboutTitle"
@@ -67,6 +67,7 @@
                 android:padding="14dp">
 
                 <TextView
+                    android:id="@+id/aboutCreditsTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/about_credits_title"
@@ -94,6 +95,7 @@
                 android:padding="14dp">
 
                 <TextView
+                    android:id="@+id/aboutVersionTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/about_version_title"
@@ -108,6 +110,25 @@
                     android:layout_marginTop="8dp"
                     android:textColor="@color/md_theme_onSurface"
                     android:textSize="14sp" />
+
+                <TextView
+                    android:id="@+id/aboutLastUpdatedTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:text="@string/about_last_updated_title"
+                    android:textColor="@color/md_theme_primary"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/aboutLastUpdatedValue"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/about_last_updated_content"
+                    android:textColor="@color/md_theme_onSurface"
+                    android:textSize="14sp" />
             </LinearLayout>
 
             <LinearLayout
@@ -119,6 +140,7 @@
                 android:padding="14dp">
 
                 <TextView
+                    android:id="@+id/aboutChangelogTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/about_changelog_title"

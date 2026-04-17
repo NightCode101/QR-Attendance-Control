@@ -61,4 +61,38 @@ public class ConfigHelper {
         }
         return sections;
     }
+
+    public String getAboutChangelog() {
+        String value = remoteConfig.getString("about_changelog");
+        return value.trim();
+    }
+
+    public String getAboutCredits() {
+        String value = remoteConfig.getString("about_credits");
+        return value.trim();
+    }
+
+    public String getAboutTitle() {
+        return remoteConfig.getString("about_title").trim();
+    }
+
+    public String getAboutCreditsTitle() {
+        return remoteConfig.getString("about_credits_title").trim();
+    }
+
+    public String getAboutVersionTitle() {
+        return remoteConfig.getString("about_version_title").trim();
+    }
+
+    public String getAboutLastUpdatedTitle() {
+        return remoteConfig.getString("about_last_updated_title").trim();
+    }
+
+    public String getAboutLastUpdated() {
+        return remoteConfig.getString("about_last_updated").trim();
+    }
+
+    public String getAboutChangelogTitle() {
+        return remoteConfig.getString("about_changelog_title").trim();
+    }
 }

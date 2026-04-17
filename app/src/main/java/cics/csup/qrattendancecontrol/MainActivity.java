@@ -179,9 +179,11 @@ public class MainActivity extends AppCompatActivity {
         sectionSpinner = findViewById(R.id.sectionSpinner);
         Button adminButton = findViewById(R.id.adminButton);
         Button graphButton = findViewById(R.id.graphButton);
+        Button aboutButton = findViewById(R.id.aboutButton);
 
         graphButton.setOnClickListener(v -> startActivity(new Intent(MainActivity.this, GraphActivity.class)));
         historyButton.setOnClickListener(v -> startActivity(new Intent(MainActivity.this, HistoryActivity.class)));
+        aboutButton.setOnClickListener(v -> startActivity(new Intent(MainActivity.this, AboutActivity.class)));
         adminButton.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, LoginActivity.class);
             intent.putExtra("target", "admin");
@@ -862,7 +864,7 @@ public class MainActivity extends AppCompatActivity {
                             uploadData.put("studentID", record.getStudentID());
                             uploadData.put("date", record.getDate());
                             uploadData.put("section", record.getSection());
-                            uploadData.put("version", "6.0");
+                            uploadData.put("version", "6.1");
                             transaction.set(docRef, uploadData, SetOptions.merge());
                         }
                         return null;
@@ -955,3 +957,4 @@ public class MainActivity extends AppCompatActivity {
         dateText.setText("Date: " + displayDateFormat.format(now));
     }
 }
+

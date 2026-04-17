@@ -22,64 +22,94 @@
 
 ---
 
-## 🚀 New in V6.0 (NFC Integration Update)
+## 🚀 Latest Updates
 
-- **📶 Dedicated RFID/NFC Screen:** Added a focused RFID scanner flow with continuous scanning support.
-- **🪪 Contactless Attendance:** Improved NFC card reading and parsing for faster tap-based check-ins.
-- **🧠 Safer Attendance Logic:** QR and RFID now share normalized ID handling to reduce split records.
-- **🎨 UI Polish:** Refined scanner visuals, button consistency, and improved overall scan UX.
+### ✨ V6.1 (Current - Enhanced Reliability & Performance)
+- **🔧 Improved Sync Engine:** More reliable offline-to-cloud synchronization with better error handling.
+- **📊 Enhanced Analytics:** Refined graph calculations for more accurate attendance statistics.
+- **🎯 Camera Controls Polish:** Zoom slider and flash toggle refined for better scanning experience.
+- **🛡️ ProGuard Optimization:** Release builds now fully minified with no reflection issues.
+
+### 🆕 V6.0 (NFC Integration)
+- **📶 Dedicated RFID/NFC Screen:** Focused RFID scanner with continuous scanning support.
+- **🪪 Contactless Attendance:** NFC card reading and parsing for tap-based check-ins.
+- **🧠 Safer Attendance Logic:** QR and RFID share normalized ID handling to prevent duplicate records.
+- **🎨 UI Polish:** Refined scanner visuals and improved UX consistency.
 
 ---
 
 ## ✨ Core Features
 
 ### 📱 For Attendance Taking
-- **Smart Logic:** Automatically detects scanning errors (e.g., scanning "Time In" twice).
-- **Offline-First:** Records are saved to a local SQLite database immediately, ensuring no data loss without internet.
-- **Dynamic Sections:** Section lists ("1A", "1B", etc.) are fetched from the cloud.
-- **History Log:** View, search, and manage local scan logs.
-- **CSV Export:** Generate and share attendance reports compatible with Excel/Sheets.
+- **Dual Scanning Modes:** QR codes (CameraX + ML Kit) or NFC/RFID cards for flexible check-ins.
+- **Smart Logic:** Automatically detects and prevents duplicate scans (5-second window).
+- **Offline-First:** Records saved to SQLite immediately—never lose data without internet.
+- **Dynamic Sections:** Section lists fetched from Firebase Remote Config, updateable without app restart.
+- **Camera Controls:** Zoom slider and flash toggle for optimal QR scanning in any lighting.
+- **History Log:** View, search, and filter local scan logs with sync status indicators (🟢 Cloud / 🔴 Local).
+- **CSV Export:** Generate and export attendance reports compatible with Excel/Google Sheets.
+
+### 📊 Analytics & Reporting
+- **Real-Time Graphs:** Visual attendance trends with MPAndroidChart integration.
+- **Attendance Statistics:** Calculate present/absent/late counts by section and time period.
+- **Customizable Reports:** Filter by date, section, or student for targeted analysis.
 
 ### 🔐 For Administrators
-- **Secure Login:** Protected by Firebase Authentication + UID Whitelisting.
-- **Real-Time Sync:** Automatically uploads local records to Firestore when online.
-- **Cloud Control:** Change the list of sections or add new admins remotely.
-- **Global Search:** Filter records by Date, Section, Name, or Student ID.
+- **Secure Login:** Firebase Authentication with UID whitelisting for admin access.
+- **Real-Time Sync:** Automatic upload of local records to Firestore (with visual sync status).
+- **Cloud Dashboard:** View all attendance records synced from all devices in real-time.
+- **Cloud Control:** Manage sections and admins remotely via Firebase Remote Config.
+- **Data Management:** Search, filter, and delete records by date/section/name/ID.
+- **Push Notifications:** FCM integration for attendance sync updates and alerts.
 
 ---
 
 ## 📖 How to Use
 
 ### 🧑‍🏫 For Users (Faculty/Attendance Officers)
-1.  **Select Section:** Choose the class section from the dropdown (loaded dynamically).
-2.  **Select Time Slot:** Tap the radio button for **Time In (AM/PM)** or **Time Out (AM/PM)**.
-3.  **Scan:** Tap **"Scan QR Code"** and point the camera at the student's ID.
-    * *QR Format:* `ID_NUMBER|STUDENT_NAME`
-4.  **View History:** Tap **"Attendance History"** to view logs.
-    * *Green Dot:* Synced to cloud.
-    * *Red Dot:* Local only (will sync when internet returns).
-5.  **Export:** Go to History -> Tap **"Export CSV"** to save or share the report.
+1. **Select Section:** Choose the class section from the dropdown (dynamically loaded from Firebase).
+2. **Select Time Slot:** Choose **Time In (AM/PM)** or **Time Out (AM/PM)**.
+3. **Scan:** Select your preferred method:
+   - **QR Code:** Tap "Scan QR Code" → Point camera at student ID
+     * Format: `ID_NUMBER|STUDENT_NAME` (e.g., `2024001|Juan Dela Cruz`)
+   - **NFC/RFID:** Tap "Scan RFID Card" → Hold card to device for tap-based check-in (New in v6.0+)
+4. **Instant Recording:** Record saves immediately to SQLite, sync happens in background when online.
+5. **View History:** Tap "Attendance History" to see all records with sync status:
+   - 🟢 **Green Dot:** Synced to cloud
+   - 🔴 **Red Dot:** Local only (will sync automatically when internet returns)
+6. **Search & Filter:** Filter history by date, section, name, or student ID.
+7. **Export:** Tap "Export CSV" to generate Excel-compatible reports for archiving or sharing.
 
 ### 🛡️ For Admins
-1.  **Login:** Tap **"Admin Panel"** on the main screen and log in with your credentials.
-2.  **Dashboard:** View all attendance records synced from all devices.
-3.  **Filter & Search:** Use the spinners to filter by Year/Month/Section or search a specific Name.
-4.  **Manage Data:** Long-press a record to **Delete** it permanently from the cloud database.
-5.  **Configuration:**
-    * To add a new section (e.g., "5A"), simply update the `sections_list` JSON in **Firebase Remote Config**.
-    * Restart the app to apply changes instantly.
+1. **Secure Login:** Tap "Admin Panel" → Firebase Auth login → UID validation against admin whitelist.
+2. **Dashboard:** Real-time view of all attendance records synced from all devices globally.
+3. **Advanced Filtering:** Filter records by:
+   - 📅 **Date Range:** Select year and month
+   - 🏫 **Section:** Filter by specific class section
+   - 👤 **Student:** Search by name, ID, or full details
+4. **Data Management:** Long-press any record to delete permanently from cloud database.
+5. **Configuration & Control:**
+   - **Add Sections:** Update `sections_list` in Firebase Remote Config (JSON format)
+   - **Manage Admins:** Add/remove admin UIDs via Firestore admin collection
+   - **Changes Apply:** Restart app to load updated config instantly
+6. **Analytics:** View graphs and statistics for attendance trends and patterns.
 
 ---
 
 ## 🧰 Tech Stack
 
-- **Language:** Java (Android SDK)
-- **Architecture:** MVVM / Event-Driven
-- **Scanning:** Android CameraX + Google ML Kit (Vision)
-- **Database:** SQLite (Local) + Firebase Firestore (Cloud)
-- **Backend/Config:** Firebase Remote Config, Authentication, Cloud Messaging (FCM)
-- **Visualization:** MPAndroidChart
-- **Export:** Storage Access Framework (SAF) & FileProvider
+| Component | Technology |
+|-----------|-----------|
+| **Language** | Java 17 (Android SDK) |
+| **Min/Target SDK** | Android 23 / 34 |
+| **Scanning** | Android CameraX + Google ML Kit Vision (QR), NFC/RFID (Tags) |
+| **Database** | SQLite 3 (Local, Offline-First) + Firebase Firestore (Cloud Sync) |
+| **Authentication** | Firebase Authentication + Custom UID Whitelisting |
+| **Config Management** | Firebase Remote Config (Dynamic Sections) |
+| **Push Notifications** | Firebase Cloud Messaging (FCM) |
+| **Analytics & Graphs** | MPAndroidChart |
+| **Export & Sharing** | Storage Access Framework (SAF) + FileProvider |
+| **Build System** | Gradle (Kotlin DSL) with ProGuard minification (release builds) |
 
 ---
 
@@ -109,7 +139,8 @@ Click below to grab the latest version:
 
 For bugs, questions, or feedback:
 
-**Jeylo Baoit** 📬 [jeylodigitals@gmail.com](mailto:jeylodigitals@gmail.com)  
+**Jeylo Baoit** 
+📬 [jeylodigitals@gmail.com](mailto:jeylodigitals@gmail.com)  
 🌐 [Facebook Profile](https://fb.com/stc.primo)
 
 ---

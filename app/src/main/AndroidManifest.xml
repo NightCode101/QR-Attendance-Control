@@ -33,6 +33,7 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
+        <activity android:name=".AboutActivity" />
         <activity android:name=".LoginActivity" />
         <activity android:name=".AdminActivity" />
         <activity android:name=".HistoryActivity" />

@@ -1,18 +1,29 @@
+import java.time.LocalDate
+import java.time.ZoneOffset
+
 plugins {
     alias(libs.plugins.android.application)
     id("com.google.gms.google-services")
 }
 
+val buildDateUtc = LocalDate.now(ZoneOffset.UTC).toString()
+
 android {
     namespace = "cics.csup.qrattendancecontrol"
     compileSdk = 35
 
+    buildFeatures {
+        buildConfig = true
+    }
+
     defaultConfig {
         applicationId = "cics.csup.qrattendancecontrol"
-        minSdk = 24
+        minSdk = 23
         targetSdk = 34
         versionCode = 7
-        versionName = "6.0"
+        versionName = "6.1"
+        buildConfigField("String", "BUILD_DATE", "\"$buildDateUtc\"")
+        resValue("string", "build_date", buildDateUtc)
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
