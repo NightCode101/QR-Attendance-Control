@@ -123,15 +123,14 @@ Click below to grab the latest version:
 
 ## 🖼 Screenshots
 
-| Main Menu                 | Scanner Interface       |
+| Main Menu                 | QR Interface       |
 |---------------------------|-------------------------|
-| ![Main Menu](UI-Home.png) | ![Scanner](UI-Scan.png) |
-| **Admin Panel**           | **History Panel**       |
-| ![Admin Panel](UI-Admin.png) | ![History](UI-History.png) |
+| ![Main Menu](UI_Main.jpg) | ![QR Scanner](UI_QR_Scan.jpg) |
+| **NFC/RFID Interface**    | **History Panel**       |
+| ![RFID Scanner](UI_RFID_Scan.jpg) | ![History](UI_History.jpg) |
+| **Admin Panel**           | **Login**       |
+| ![Admin Panel](UI_Admin.jpg) | ![Login](UI_Login.jpg) |
 
-**Login Interface**
-
-![Login Interface](UI-Login.png)
 
 ---
 
