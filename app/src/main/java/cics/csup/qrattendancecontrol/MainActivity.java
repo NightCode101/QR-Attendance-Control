@@ -31,6 +31,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
+import com.google.android.material.appbar.MaterialToolbar;
 
 import android.content.pm.PackageManager;
 import android.os.Build;
@@ -177,17 +178,29 @@ public class MainActivity extends AppCompatActivity {
         timeText = findViewById(R.id.timeText);
         dateText = findViewById(R.id.dateText);
         sectionSpinner = findViewById(R.id.sectionSpinner);
-        Button adminButton = findViewById(R.id.adminButton);
         Button graphButton = findViewById(R.id.graphButton);
-        Button aboutButton = findViewById(R.id.aboutButton);
+        MaterialToolbar topAppBar = findViewById(R.id.topAppBar);
+        topAppBar.setTitle(R.string.app_title);
 
         graphButton.setOnClickListener(v -> startActivity(new Intent(MainActivity.this, GraphActivity.class)));
         historyButton.setOnClickListener(v -> startActivity(new Intent(MainActivity.this, HistoryActivity.class)));
-        aboutButton.setOnClickListener(v -> startActivity(new Intent(MainActivity.this, AboutActivity.class)));
-        adminButton.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, LoginActivity.class);
-            intent.putExtra("target", "admin");
-            startActivity(intent);
+        topAppBar.setOnMenuItemClickListener(item -> {
+            int itemId = item.getItemId();
+            if (itemId == R.id.action_graph) {
+                startActivity(new Intent(MainActivity.this, GraphActivity.class));
+                return true;
+            }
+            if (itemId == R.id.action_admin_panel) {
+                Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+                intent.putExtra("target", "admin");
+                startActivity(intent);
+                return true;
+            }
+            if (itemId == R.id.action_about) {
+                startActivity(new Intent(MainActivity.this, AboutActivity.class));
+                return true;
+            }
+            return false;
         });
         scanButton.setOnClickListener(v -> startQRScanner());
         rfidScanButton.setOnClickListener(v -> startRFIDScanner());
@@ -903,9 +916,8 @@ public class MainActivity extends AppCompatActivity {
 
     private void applyWindowInsetPadding() {
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content), (view, insets) -> {
-            int top = insets.getInsets(WindowInsetsCompat.Type.systemBars()).top;
             int bottom = insets.getInsets(WindowInsetsCompat.Type.systemBars()).bottom;
-            view.setPadding(0, top, 0, bottom);
+            view.setPadding(0, 0, 0, bottom);
             return insets;
         });
     }

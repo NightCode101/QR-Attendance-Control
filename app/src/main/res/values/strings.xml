@@ -15,7 +15,10 @@
     <string name="export_csv">Export List</string>
     <string name="clear_history">Clear List</string>
     <string name="admin_panel">Admin Panel</string>
+    <string name="menu_graph">Attendance Graph</string>
     <string name="button_show_chart">Show Attendance Chart</string>
+    <string name="graph_in_development_notice">Currently In Development, stay tuned for future update.</string>
+    <string name="graph_exit_button">Exit</string>
     <string name="about_section">About</string>
 
     <string name="admin_login">Admin Login</string>

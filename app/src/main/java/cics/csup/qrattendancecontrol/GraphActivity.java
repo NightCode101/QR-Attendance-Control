@@ -13,6 +13,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.snackbar.Snackbar;
@@ -23,6 +24,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 public class GraphActivity extends AppCompatActivity {
+
+    // Safety switch: while true, graph reads stay fully disabled to avoid Firestore usage.
+    private static final boolean GRAPH_IN_DEVELOPMENT = true;
 
     private BarChart barChart;
     private Button buttonFirstYear, buttonSecondYear, buttonThirdYear, buttonFourthYear;
@@ -41,6 +45,12 @@ public class GraphActivity extends AppCompatActivity {
         buttonThirdYear = findViewById(R.id.buttonThirdYear);
         buttonFourthYear = findViewById(R.id.buttonFourthYear);
 
+        if (GRAPH_IN_DEVELOPMENT) {
+            // Do not initialize Firestore or listeners while feature is paused.
+            showDevelopmentNotice();
+            return;
+        }
+
         firestore = FirebaseFirestore.getInstance();
 
         buttonFirstYear.setOnClickListener(v -> { currentYearLevel = 1; updateGraphForYear(currentYearLevel); });
@@ -48,10 +58,25 @@ public class GraphActivity extends AppCompatActivity {
         buttonThirdYear.setOnClickListener(v -> { currentYearLevel = 3; updateGraphForYear(currentYearLevel); });
         buttonFourthYear.setOnClickListener(v -> { currentYearLevel = 4; updateGraphForYear(currentYearLevel); });
 
-        updateGraphForYear(currentYearLevel);
+        showDevelopmentNotice();
+    }
+
+    private void showDevelopmentNotice() {
+        new AlertDialog.Builder(this)
+                .setTitle(getString(R.string.menu_graph))
+                .setMessage(getString(R.string.graph_in_development_notice))
+                .setCancelable(false)
+                .setPositiveButton(R.string.graph_exit_button, (dialog, which) -> {
+                    dialog.dismiss();
+                    finish();
+                })
+                .show();
     }
 
     private void updateGraphForYear(int year) {
+        if (GRAPH_IN_DEVELOPMENT) {
+            return;
+        }
         String sectionRange = getSectionRangeForYear(year);
 
         firestore.collection("sections_total").document(sectionRange)
