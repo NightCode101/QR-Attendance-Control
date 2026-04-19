@@ -39,6 +39,9 @@ import androidx.core.app.ActivityCompat;
 import android.Manifest;
 
 import com.google.firebase.FirebaseApp;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.MobileAds;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -62,6 +65,8 @@ import java.util.Map;
 import android.app.PendingIntent;
 
 public class MainActivity extends AppCompatActivity {
+
+    private static final String DEBUG_TEST_BANNER_AD_UNIT_ID = "ca-app-pub-3940256099942544/6300978111";
 
     private ConfigHelper configHelper;
     private AnalyticsManager analyticsManager;
@@ -90,6 +95,7 @@ public class MainActivity extends AppCompatActivity {
     private String pendingQrContent;
     private String pendingQrTimeSlotField;
     private String pendingQrTimeSlotName;
+    private AdView mainBannerAdView;
 
     private final SimpleDateFormat displayTimeFormat = new SimpleDateFormat("hh:mm a", Locale.getDefault());
     private final SimpleDateFormat displayDateFormat = new SimpleDateFormat("MMMM d, yyyy", Locale.getDefault());
@@ -178,9 +184,12 @@ public class MainActivity extends AppCompatActivity {
         timeText = findViewById(R.id.timeText);
         dateText = findViewById(R.id.dateText);
         sectionSpinner = findViewById(R.id.sectionSpinner);
+        mainBannerAdView = findViewById(R.id.mainBannerAdView);
         Button graphButton = findViewById(R.id.graphButton);
         MaterialToolbar topAppBar = findViewById(R.id.topAppBar);
         topAppBar.setTitle(R.string.app_title);
+
+        initializeAndLoadBannerAd();
 
         graphButton.setOnClickListener(v -> startActivity(new Intent(MainActivity.this, GraphActivity.class)));
         historyButton.setOnClickListener(v -> startActivity(new Intent(MainActivity.this, HistoryActivity.class)));
@@ -231,6 +240,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        if (mainBannerAdView != null) {
+            mainBannerAdView.resume();
+        }
         isInForeground = true;
         // Restore NFC mode in case it was set by a previous instance
         nfcModeActive = sharedPreferences.getBoolean(KEY_NFC_MODE_ACTIVE, false);
@@ -257,6 +269,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
+        if (mainBannerAdView != null) {
+            mainBannerAdView.pause();
+        }
         isInForeground = false;
         Log.d("MainActivity", "onPause: isInForeground=false");
 
@@ -925,6 +940,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        if (mainBannerAdView != null) {
+            mainBannerAdView.destroy();
+        }
         if (networkChangeReceiver != null) {
             try {
                 unregisterReceiver(networkChangeReceiver);
@@ -967,6 +985,18 @@ public class MainActivity extends AppCompatActivity {
         Date now = new Date();
         timeText.setText("Time: " + displayTimeFormat.format(now));
         dateText.setText("Date: " + displayDateFormat.format(now));
+    }
+
+    private void initializeAndLoadBannerAd() {
+        if (mainBannerAdView == null) {
+            return;
+        }
+
+
+        MobileAds.initialize(this, initializationStatus -> {
+            AdRequest adRequest = new AdRequest.Builder().build();
+            mainBannerAdView.loadAd(adRequest);
+        });
     }
 }
 

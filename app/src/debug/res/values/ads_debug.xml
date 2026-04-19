@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Debug-only test ad unit to avoid serving live banner inventory during development. -->
+    <string name="admob_banner_main">ca-app-pub-3940256099942544/6300978111</string>
+</resources>
+

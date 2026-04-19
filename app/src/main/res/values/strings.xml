@@ -1,6 +1,10 @@
 <resources>
     <string name="app_name">CICS QR Attendance Control</string>
     <string name="app_title">CICS QR Attendance Control</string>
+    <string name="admob_app_id">ca-app-pub-6600375635602117~8411293936</string>
+    <string name="admob_banner_main">ca-app-pub-6600375635602117/3255170172</string>
+    <string name="admob_app_open">ca-app-pub-6600375635602117/4281324695</string>
+    <string name="admob_native_advanced">ca-app-pub-6600375635602117/5348040530</string>
 
     <string name="qr_data">Name: —</string>
     <string name="status_label">Status: —</string>
@@ -58,8 +62,8 @@
     <string name="scanner_button_flash">Flash</string>
     <string name="creator_credit">💗 Created by: Jeylo Baoit</string>
     <string name="about_title">About</string>
-    <string name="about_back">Back</string>
     <string name="about_credits_title">Credits</string>
+    <string name="native_ad_sponsored">Sponsored</string>
     <string name="about_credits_content">Created and maintained by Jeylo Baoit\n\nCICS QR Attendance Control Team\nThanks to all testers and contributors.</string>
     <string name="about_version_title">App Version</string>
     <string name="about_version_format">Version %1$s (%2$d)</string>
