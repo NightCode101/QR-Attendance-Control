@@ -12,7 +12,7 @@
 
     <entry>
         <key>about_changelog</key>
-        <value>V6.0\n- Dedicated RFID/NFC scan screen\n- Improved QR + NFC unified attendance logic\n- Better scanner UI consistency\n\nV5.x\n- History and admin UI improvements\n- Date filtering and sync indicators\n\nV4.x and below\n- Core QR attendance, local storage, and cloud sync foundation</value>
+        <value>V6.2\n- Dedicated admin Access Code Management UI\n- Create, revoke, and check code status from admin panel\n- Functions-based access control hardening</value>
     </entry>
 
     <entry>

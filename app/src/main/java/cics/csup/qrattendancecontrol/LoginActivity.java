@@ -2,7 +2,6 @@ package cics.csup.qrattendancecontrol;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
@@ -64,8 +63,7 @@ public class LoginActivity extends AppCompatActivity {
 
         if (currentUser != null && rememberMe) {
             if (ADMIN_UIDS.contains(currentUser.getUid())) {
-                startActivity(new Intent(LoginActivity.this, AdminActivity.class));
-                finish();
+                openAdminModuleChooser();
                 return;
             } else {
                 showSnackbar("Access denied. Not an admin.");
@@ -110,9 +108,7 @@ public class LoginActivity extends AppCompatActivity {
 
                         // --- UPDATED: Use ConfigHelper instead of the hardcoded Set ---
                         if (configHelper.isAdmin(user.getUid())) {
-                            Intent intent = new Intent(LoginActivity.this, AdminActivity.class);
-                            startActivity(intent);
-                            finish();
+                            openAdminModuleChooser();
                         } else {
                             showSnackbar("Access denied. Not an admin.");
                             mAuth.signOut();
@@ -121,6 +117,11 @@ public class LoginActivity extends AppCompatActivity {
                     }
                 })
                 .addOnFailureListener(e -> showSnackbar("Login failed: " + e.getMessage()));
+    }
+
+    private void openAdminModuleChooser() {
+        startActivity(new Intent(LoginActivity.this, AdminModuleChooserActivity.class));
+        finish();
     }
 
     private void showSnackbar(String message) {
