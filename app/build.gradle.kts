@@ -20,8 +20,8 @@ android {
         applicationId = "cics.csup.qrattendancecontrol"
         minSdk = 23
         targetSdk = 34
-        versionCode = 7
-        versionName = "6.1"
+        versionCode = 8
+        versionName = "6.2"
         buildConfigField("String", "BUILD_DATE", "\"$buildDateUtc\"")
         resValue("string", "build_date", buildDateUtc)
 
@@ -61,6 +61,7 @@ dependencies {
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-firestore")
     implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.firebase:firebase-functions")
 
     // CameraX
     val cameraxVersion = "1.3.4"

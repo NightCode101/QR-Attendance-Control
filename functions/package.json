@@ -1,0 +1,25 @@
+{
+  "name": "qr-attendance-functions",
+  "private": true,
+  "main": "index.js",
+  "engines": {
+    "node": "22"
+  },
+  "scripts": {
+    "serve": "firebase emulators:start --only functions",
+    "deploy": "firebase deploy --only functions",
+    "lint": "echo \"No lint configured\""
+  },
+  "dependencies": {
+    "@dataconnect/admin-generated": "file:src/dataconnect-admin-generated",
+    "express": "^5.2.1",
+    "firebase-admin": "^13.8.0",
+    "firebase-functions": "^7.2.5",
+    "genkit": "^1.32.0",
+    "genkit-cli": "^1.32.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.3"
+  }
+}

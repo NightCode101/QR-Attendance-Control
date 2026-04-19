@@ -10,6 +10,7 @@ import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -20,6 +21,9 @@ import com.google.android.gms.ads.LoadAdError;
 import com.google.android.gms.ads.nativead.MediaView;
 import com.google.android.gms.ads.nativead.NativeAd;
 import com.google.android.gms.ads.nativead.NativeAdView;
+import com.google.android.ump.ConsentInformation;
+import com.google.android.ump.FormError;
+import com.google.android.ump.UserMessagingPlatform;
 
 public class AboutActivity extends AppCompatActivity {
 
@@ -28,6 +32,9 @@ public class AboutActivity extends AppCompatActivity {
     private ConfigHelper configHelper;
     private FrameLayout nativeAdContainer;
     private NativeAd nativeAd;
+    private View privacySection;
+    private Button privacyButton;
+    private ConsentInformation consentInformation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,6 +51,12 @@ public class AboutActivity extends AppCompatActivity {
         TextView creditsValue = findViewById(R.id.aboutCreditsValue);
         TextView changelogValue = findViewById(R.id.aboutChangelogValue);
         nativeAdContainer = findViewById(R.id.aboutNativeAdContainer);
+        privacySection = findViewById(R.id.aboutPrivacySection);
+        privacyButton = findViewById(R.id.aboutPrivacyButton);
+        consentInformation = UserMessagingPlatform.getConsentInformation(this);
+
+        privacyButton.setOnClickListener(v -> showPrivacyOptionsFormIfAvailable());
+        updatePrivacyOptionsVisibility();
 
 
         versionValue.setText(getAppVersionText());
@@ -108,8 +121,52 @@ public class AboutActivity extends AppCompatActivity {
         loadNativeAdvancedAd();
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        updatePrivacyOptionsVisibility();
+    }
+
+    private void updatePrivacyOptionsVisibility() {
+        if (privacySection == null || consentInformation == null) {
+            return;
+        }
+
+        boolean shouldShow = consentInformation.getPrivacyOptionsRequirementStatus()
+                == ConsentInformation.PrivacyOptionsRequirementStatus.REQUIRED;
+        privacySection.setVisibility(shouldShow ? View.VISIBLE : View.GONE);
+    }
+
+    private void showPrivacyOptionsFormIfAvailable() {
+        if (consentInformation == null) {
+            Toast.makeText(this, R.string.privacy_options_not_available, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (consentInformation.getPrivacyOptionsRequirementStatus()
+                != ConsentInformation.PrivacyOptionsRequirementStatus.REQUIRED) {
+            Toast.makeText(this, R.string.privacy_options_not_available, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        UserMessagingPlatform.showPrivacyOptionsForm(this, this::onPrivacyOptionsDismissed);
+    }
+
+    private void onPrivacyOptionsDismissed(FormError formError) {
+        if (formError != null) {
+            Toast.makeText(this, R.string.privacy_options_update_failed, Toast.LENGTH_SHORT).show();
+        }
+        updatePrivacyOptionsVisibility();
+        loadNativeAdvancedAd();
+    }
+
     private void loadNativeAdvancedAd() {
         if (nativeAdContainer == null) {
+            return;
+        }
+
+        if (!UserMessagingPlatform.getConsentInformation(this).canRequestAds()) {
+            nativeAdContainer.setVisibility(View.GONE);
             return;
         }
 

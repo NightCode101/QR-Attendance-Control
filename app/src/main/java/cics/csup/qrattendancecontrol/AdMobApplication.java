@@ -16,8 +16,13 @@ import com.google.android.gms.ads.FullScreenContentCallback;
 import com.google.android.gms.ads.LoadAdError;
 import com.google.android.gms.ads.MobileAds;
 import com.google.android.gms.ads.appopen.AppOpenAd;
+import com.google.android.ump.ConsentInformation;
+import com.google.android.ump.ConsentRequestParameters;
+import com.google.android.ump.FormError;
+import com.google.android.ump.UserMessagingPlatform;
 
 import java.lang.ref.WeakReference;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class AdMobApplication extends Application implements Application.ActivityLifecycleCallbacks, DefaultLifecycleObserver {
 
@@ -25,11 +30,22 @@ public class AdMobApplication extends Application implements Application.Activit
 
     private final AppOpenAdManager appOpenAdManager = new AppOpenAdManager();
     private WeakReference<Activity> currentActivityRef;
+    private ConsentInformation consentInformation;
+    private final AtomicBoolean mobileAdsInitialized = new AtomicBoolean(false);
+    private boolean canRequestAds = false;
+    private boolean consentInfoUpdateRequested = false;
+    private boolean consentFormFlowStarted = false;
+    private boolean consentFormFlowFinished = false;
 
     @Override
     public void onCreate() {
         super.onCreate();
-        MobileAds.initialize(this, initializationStatus -> {});
+        consentInformation = UserMessagingPlatform.getConsentInformation(this);
+
+        // Respect previously stored consent while waiting for fresh update from UMP.
+        canRequestAds = consentInformation.canRequestAds();
+        maybeInitializeMobileAds();
+
         registerActivityLifecycleCallbacks(this);
         ProcessLifecycleOwner.get().getLifecycle().addObserver(this);
     }
@@ -48,6 +64,10 @@ public class AdMobApplication extends Application implements Application.Activit
     @Override
     public void onActivityStarted(@NonNull Activity activity) {
         currentActivityRef = new WeakReference<>(activity);
+        requestConsentInfo(activity);
+        maybeRunConsentForm(activity);
+        maybeInitializeMobileAds();
+        loadBannerIfPresent(activity);
     }
 
     @Override
@@ -87,6 +107,10 @@ public class AdMobApplication extends Application implements Application.Activit
     }
 
     private void loadBannerIfPresent(@NonNull Activity activity) {
+        if (!canRequestAds || !mobileAdsInitialized.get()) {
+            return;
+        }
+
         AdView bannerAdView = activity.findViewById(R.id.bannerAdView);
         if (bannerAdView == null) {
             return;
@@ -99,12 +123,77 @@ public class AdMobApplication extends Application implements Application.Activit
         bannerAdView.loadAd(new AdRequest.Builder().build());
     }
 
+    private void requestConsentInfo(@NonNull Activity activity) {
+        if (consentInfoUpdateRequested) {
+            return;
+        }
+        consentInfoUpdateRequested = true;
+
+        ConsentRequestParameters params = new ConsentRequestParameters.Builder().build();
+
+        consentInformation.requestConsentInfoUpdate(
+                activity,
+                params,
+                () -> {
+                    canRequestAds = consentInformation.canRequestAds();
+                    maybeInitializeMobileAds();
+
+                    Activity currentActivity = currentActivityRef != null ? currentActivityRef.get() : null;
+                    if (currentActivity != null) {
+                        maybeRunConsentForm(currentActivity);
+                        loadBannerIfPresent(currentActivity);
+                    }
+                },
+                requestConsentError -> {
+                    canRequestAds = consentInformation.canRequestAds();
+                    maybeInitializeMobileAds();
+                }
+        );
+    }
+
+    private void maybeRunConsentForm(@Nullable Activity activity) {
+        if (activity == null || consentFormFlowStarted || consentFormFlowFinished) {
+            return;
+        }
+        if (!consentInformation.isConsentFormAvailable()) {
+            consentFormFlowFinished = true;
+            return;
+        }
+
+        consentFormFlowStarted = true;
+        UserMessagingPlatform.loadAndShowConsentFormIfRequired(activity, this::onConsentFormDismissed);
+    }
+
+    private void onConsentFormDismissed(@Nullable FormError formError) {
+        consentFormFlowFinished = true;
+        canRequestAds = consentInformation.canRequestAds();
+        maybeInitializeMobileAds();
+
+        Activity activity = currentActivityRef != null ? currentActivityRef.get() : null;
+        if (activity != null) {
+            loadBannerIfPresent(activity);
+        }
+    }
+
+    private void maybeInitializeMobileAds() {
+        if (!canRequestAds || !mobileAdsInitialized.compareAndSet(false, true)) {
+            return;
+        }
+
+        MobileAds.initialize(this, initializationStatus -> {
+            appOpenAdManager.loadAd();
+        });
+    }
+
     private class AppOpenAdManager {
         private AppOpenAd appOpenAd;
         private boolean isLoadingAd;
         private boolean isShowingAd;
 
         void loadAd() {
+            if (!canRequestAds || !mobileAdsInitialized.get()) {
+                return;
+            }
             if (isLoadingAd || appOpenAd != null) {
                 return;
             }
@@ -135,7 +224,7 @@ public class AdMobApplication extends Application implements Application.Activit
         }
 
         void showAdIfAvailable(@Nullable Activity activity) {
-            if (activity == null || isShowingAd) {
+            if (activity == null || isShowingAd || !canRequestAds || !mobileAdsInitialized.get()) {
                 return;
             }
 

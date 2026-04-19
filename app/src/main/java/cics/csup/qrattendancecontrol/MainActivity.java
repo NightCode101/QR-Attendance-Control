@@ -41,7 +41,7 @@ import android.Manifest;
 import com.google.firebase.FirebaseApp;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
-import com.google.android.gms.ads.MobileAds;
+import com.google.android.ump.UserMessagingPlatform;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -65,8 +65,6 @@ import java.util.Map;
 import android.app.PendingIntent;
 
 public class MainActivity extends AppCompatActivity {
-
-    private static final String DEBUG_TEST_BANNER_AD_UNIT_ID = "ca-app-pub-3940256099942544/6300978111";
 
     private ConfigHelper configHelper;
     private AnalyticsManager analyticsManager;
@@ -96,6 +94,7 @@ public class MainActivity extends AppCompatActivity {
     private String pendingQrTimeSlotField;
     private String pendingQrTimeSlotName;
     private AdView mainBannerAdView;
+    private AccessControlManager accessControlManager;
 
     private final SimpleDateFormat displayTimeFormat = new SimpleDateFormat("hh:mm a", Locale.getDefault());
     private final SimpleDateFormat displayDateFormat = new SimpleDateFormat("MMMM d, yyyy", Locale.getDefault());
@@ -132,6 +131,13 @@ public class MainActivity extends AppCompatActivity {
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
         super.onCreate(savedInstanceState);
+
+        accessControlManager = new AccessControlManager(this);
+        if (!accessControlManager.hasCachedAccess()) {
+            redirectToAccessCode();
+            return;
+        }
+
         setContentView(R.layout.activity_main);
 
         FirebaseApp.initializeApp(this);
@@ -240,6 +246,15 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+
+        if (accessControlManager != null && isOnline()) {
+            accessControlManager.verifyCurrentAccess((success, message) -> runOnUiThread(() -> {
+                if (!success) {
+                    redirectToAccessCode();
+                }
+            }));
+        }
+
         if (mainBannerAdView != null) {
             mainBannerAdView.resume();
         }
@@ -892,7 +907,7 @@ public class MainActivity extends AppCompatActivity {
                             uploadData.put("studentID", record.getStudentID());
                             uploadData.put("date", record.getDate());
                             uploadData.put("section", record.getSection());
-                            uploadData.put("version", "6.1");
+                            uploadData.put("version", "6.2");
                             transaction.set(docRef, uploadData, SetOptions.merge());
                         }
                         return null;
@@ -992,11 +1007,19 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
+        if (!UserMessagingPlatform.getConsentInformation(this).canRequestAds()) {
+            return;
+        }
 
-        MobileAds.initialize(this, initializationStatus -> {
-            AdRequest adRequest = new AdRequest.Builder().build();
-            mainBannerAdView.loadAd(adRequest);
-        });
+        AdRequest adRequest = new AdRequest.Builder().build();
+        mainBannerAdView.loadAd(adRequest);
+    }
+
+    private void redirectToAccessCode() {
+        Intent intent = new Intent(MainActivity.this, AccessCodeActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
     }
 }
 

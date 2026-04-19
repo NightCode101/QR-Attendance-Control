@@ -63,6 +63,7 @@ public class AdminActivity extends AppCompatActivity {
 
     private ListenerRegistration firestoreListener;
     private EditText searchNameEditText;
+    private AccessControlManager accessControlManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,6 +89,7 @@ public class AdminActivity extends AppCompatActivity {
 
         firestore = FirebaseFirestore.getInstance();
         cacheDB = new AdminCacheDBHelper(this);
+        accessControlManager = new AccessControlManager(this);
 
         setupSectionSpinner(); // Now calls the updated method
         setupDateFilter();
@@ -111,6 +113,7 @@ public class AdminActivity extends AppCompatActivity {
                     .setPositiveButton("Yes", (d, which) -> {
                         FirebaseAuth.getInstance().signOut();
                         getSharedPreferences("LoginPrefs", MODE_PRIVATE).edit().clear().apply();
+                        accessControlManager.clearAccess();
                         showSnackbar("Logged out successfully");
                         Intent intent = new Intent(AdminActivity.this, LoginActivity.class);
                         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -123,6 +126,7 @@ public class AdminActivity extends AppCompatActivity {
             dialog.getButton(DialogInterface.BUTTON_POSITIVE).setTextColor(ContextCompat.getColor(this, R.color.md_theme_error));
             dialog.getButton(DialogInterface.BUTTON_NEGATIVE).setTextColor(ContextCompat.getColor(this, R.color.md_theme_onSurfaceVariant));
         });
+
 
         MaterialButton exportButton = findViewById(R.id.button_export_csv);
         exportButton.setOnClickListener(this::exportToCSV);
@@ -460,4 +464,5 @@ public class AdminActivity extends AppCompatActivity {
                 .setTextColor(getColor(R.color.white))
                 .show();
     }
+
 }

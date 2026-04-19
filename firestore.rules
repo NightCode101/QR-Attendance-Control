@@ -1,0 +1,48 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAdmin() {
+      return request.auth != null &&
+        (request.auth.uid == "KCKVGF5sJ7TfGWKAl0fRJziE4Ja2" ||
+         request.auth.uid == "NFs38qPJAXXZFspS37nRhteROWn1");
+    }
+
+    function isAllowedVersion() {
+      return request.resource.data.version in ["6.0", "6.1", "6.2"];
+    }
+
+    // Attendance data
+    match /attendance_records/{docId} {
+      // Keep public read if you want history visible without auth
+      allow read: if true;
+
+      // Keep your sync model (unauth write allowed) but version-gated
+      allow create, update: if isAllowedVersion();
+
+      // Delete only admins
+      allow delete: if isAdmin();
+    }
+
+    // Access-code system (client should NOT read/write directly)
+    match /access_codes/{code} {
+      allow read, write: if false;
+
+      match /activations/{deviceId} {
+        allow read, write: if false;
+      }
+    }
+
+    // Optional audit logs
+    match /access_events/{eventId} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+
+    // Default deny everything else
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
