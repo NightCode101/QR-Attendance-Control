@@ -19,9 +19,9 @@ android {
     defaultConfig {
         applicationId = "cics.csup.qrattendancecontrol"
         minSdk = 23
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 8
-        versionName = "6.2"
+        versionName = "6.2.1"
         buildConfigField("String", "BUILD_DATE", "\"$buildDateUtc\"")
         resValue("string", "build_date", buildDateUtc)
 

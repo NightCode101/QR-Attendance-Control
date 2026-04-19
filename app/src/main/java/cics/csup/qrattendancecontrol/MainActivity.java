@@ -172,6 +172,7 @@ public class MainActivity extends AppCompatActivity {
         // 1. Initialize ConfigHelper & AnalyticsManager
         configHelper = new ConfigHelper();
         analyticsManager = new AnalyticsManager(this); // <--- ADDED: Init Analytics
+        analyticsManager.logOpenApp();
 
         // 2. Request Notification Permission (Required for Android 13+)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -246,6 +247,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+
+        if (analyticsManager != null) {
+            analyticsManager.logOnForeground();
+        }
 
         if (accessControlManager != null && isOnline()) {
             accessControlManager.verifyCurrentAccess((success, message) -> runOnUiThread(() -> {

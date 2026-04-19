@@ -22,4 +22,12 @@ public class AnalyticsManager {
         // Log custom event "qr_scan_attempt"
         firebaseAnalytics.logEvent("qr_scan_attempt", bundle);
     }
+
+    public void logOpenApp() {
+        firebaseAnalytics.logEvent("open_app", null);
+    }
+
+    public void logOnForeground() {
+        firebaseAnalytics.logEvent("on_foreground", null);
+    }
 }
