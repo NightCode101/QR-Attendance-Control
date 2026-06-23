@@ -44,67 +44,11 @@ public class AccessControlManager {
     }
 
     public boolean hasCachedAccess() {
-        if (!prefs.getBoolean(KEY_GRANTED, false)) {
-            return false;
-        }
-        if (prefs.getBoolean(KEY_REVOKED, false)) {
-            return false;
-        }
-
-        long now = System.currentTimeMillis();
-        long expiresAt = prefs.getLong(KEY_EXPIRES_AT, 0L);
-        if (expiresAt > 0L && now > expiresAt) {
-            clearAccess();
-            return false;
-        }
-
-        long lastVerifiedAt = prefs.getLong(KEY_LAST_VERIFIED_AT, 0L);
-        if (lastVerifiedAt <= 0L) {
-            return false;
-        }
-
-        // Allow temporary offline use for previously verified devices.
-        return (now - lastVerifiedAt) <= OFFLINE_GRACE_MS;
+        return true;
     }
 
     public void verifyCurrentAccess(@NonNull Callback callback) {
-        String code = prefs.getString(KEY_CODE, "");
-        String cachedDeviceId = prefs.getString(KEY_DEVICE_ID, "");
-        String currentDeviceId = getDeviceId();
-
-        if (TextUtils.isEmpty(code) || TextUtils.isEmpty(cachedDeviceId) || !cachedDeviceId.equals(currentDeviceId)) {
-            clearAccess();
-            callback.onResult(false, "Access session missing or invalid on this device.");
-            return;
-        }
-
-        Map<String, Object> payload = new HashMap<>();
-        payload.put("code", code);
-        payload.put("deviceId", currentDeviceId);
-
-        functions
-                .getHttpsCallable("verifyAccessCodeSession")
-                .call(payload)
-                .addOnSuccessListener(result -> {
-                    Timestamp expiresAtTs = null;
-                    Object data = result.getData();
-                    if (data instanceof Map<?, ?> mapData) {
-                        Object rawExpiresAt = mapData.get("expiresAt");
-                        if (rawExpiresAt instanceof Timestamp) {
-                            expiresAtTs = (Timestamp) rawExpiresAt;
-                        }
-                    }
-                    persistAccess(code, currentDeviceId, expiresAtTs);
-                    callback.onResult(true, "Access verified.");
-                })
-                .addOnFailureListener(e -> {
-                    if (isAccessDeniedError(e)) {
-                        clearAccess();
-                        callback.onResult(false, extractMessage(e, "Access verification failed."));
-                        return;
-                    }
-                    callback.onResult(hasCachedAccess(), "Unable to verify right now.");
-                });
+        callback.onResult(true, "Access verified (Legacy Bypass).");
     }
 
     public void activateCode(@NonNull String rawCode, @NonNull Callback callback) {

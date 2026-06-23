@@ -29,6 +29,7 @@ public class RFIDScanActivity extends AppCompatActivity {
     private static final long DUPLICATE_SCAN_COOLDOWN_MS = 1200L;
 
     private AttendanceDBHelper db;
+    private SyncManager syncManager;
     private NfcAdapter nfcAdapter;
     private PendingIntent pendingIntent;
 
@@ -50,6 +51,7 @@ public class RFIDScanActivity extends AppCompatActivity {
         setContentView(R.layout.activity_rfid_scan);
 
         db = new AttendanceDBHelper(this);
+        syncManager = new SyncManager(this);
 
         hintText = findViewById(R.id.rfidHintText);
         statusText = findViewById(R.id.scanStatusText);
@@ -233,6 +235,9 @@ public class RFIDScanActivity extends AppCompatActivity {
 
         String currentTime = new SimpleDateFormat("hh:mm a", Locale.getDefault()).format(new Date());
         db.markDetailedAttendance(studentID, studentName, date, section, timeSlotField, currentTime);
+
+        // Trigger immediate sync
+        syncManager.syncUnsyncedRecords();
 
         updateInlineStatus(
                 "Attendance recorded for:\n\n"

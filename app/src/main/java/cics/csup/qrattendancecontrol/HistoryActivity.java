@@ -37,23 +37,18 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.recyclerview.widget.ItemTouchHelper;
-import androidx.appcompat.app.AppCompatDelegate;
-import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.google.android.material.appbar.MaterialToolbar;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.SetOptions;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.function.Consumer;
 
 import java.io.File;
@@ -72,6 +67,7 @@ public class HistoryActivity extends AppCompatActivity {
     private TextView totalTextView;
     private SwipeRefreshLayout swipeRefreshLayout;
     private ConnectivityManager.NetworkCallback networkCallback;
+    private SyncManager syncManager;
     private FirebaseFirestore firestore;
     private TextView dateFilterButton;
     private Button clearDateFilterButton;
@@ -96,6 +92,7 @@ public class HistoryActivity extends AppCompatActivity {
         setContentView(R.layout.activity_history);
 
         dbHelper = new AttendanceDBHelper(this);
+        syncManager = new SyncManager(this);
         firestore = FirebaseFirestore.getInstance();
 
         recyclerView = findViewById(R.id.recyclerViewHistory);
@@ -133,14 +130,17 @@ public class HistoryActivity extends AppCompatActivity {
 
         loadHistory(null);
         setupNetworkCallback();
-        fetchAndCacheAdminPassword();
+        syncManager.fetchAndCacheAdminPassword();
 
         syncButton.setOnClickListener(v -> {
-            if (!checkInternetConnection()) {
+            if (!syncManager.isOnline()) {
                 showSnackbar("No internet connection.");
                 return;
             }
-            syncOfflineDataToFirestore(true);
+            syncManager.syncUnsyncedRecords();
+            // We can't easily wait for sync completion to show snackbar here without adding callbacks to SyncManager,
+            // but the internal logs and Dot status in list will reflect the state.
+            showSnackbar("Syncing records...");
         });
 
         dateFilterButton.setOnClickListener(v -> {
@@ -337,21 +337,6 @@ public class HistoryActivity extends AppCompatActivity {
         new ItemTouchHelper(callback).attachToRecyclerView(recyclerView);
     }
 
-    private void fetchAndCacheAdminPassword() {
-        FirebaseFirestore.getInstance().collection("config").document("admin")
-                .get()
-                .addOnSuccessListener((DocumentSnapshot doc) -> {
-                    if (doc.exists()) {
-                        String pw = doc.getString("password");
-                        if (pw != null && !pw.isEmpty()) {
-                            getSharedPreferences(ADMIN_PREFS, MODE_PRIVATE).edit().putString(ADMIN_KEY, pw).apply();
-                            Log.d("ADMIN", "Admin password cached.");
-                        }
-                    }
-                })
-                .addOnFailureListener(e -> Log.e("ADMIN", "Failed to fetch admin password: " + e.getMessage()));
-    }
-
     private void promptAdminPasswordAndPerform(String title, String message, boolean isClear, Consumer<Boolean> callback) {
         LinearLayout container = new LinearLayout(this);
         container.setOrientation(LinearLayout.VERTICAL);
@@ -388,7 +373,7 @@ public class HistoryActivity extends AppCompatActivity {
                 if (cached == null) {
                     errorText.setText("Connect to internet to fetch password.");
                     errorText.setVisibility(View.VISIBLE);
-                    fetchAndCacheAdminPassword();
+                    syncManager.fetchAndCacheAdminPassword();
                     return;
                 }
                 if (!entered.equals(cached)) {
@@ -403,53 +388,6 @@ public class HistoryActivity extends AppCompatActivity {
         dialog.show();
     }
 
-    private void syncOfflineDataToFirestore(boolean showFeedback) {
-        List<AttendanceRecord> unsynced = dbHelper.getUnsyncedRecords();
-        if (unsynced.isEmpty()) {
-            if (showFeedback) showSnackbar("All records are already uploaded.");
-            return;
-        }
-
-        final int total = unsynced.size();
-        final int[] done = {0}, uploaded = {0};
-
-        for (AttendanceRecord record : unsynced) {
-            String docId = record.getIdHash();
-            Map<String, Object> data = record.toMap();
-
-            firestore.collection("attendance_records").document(docId)
-                    .set(data, SetOptions.merge())
-                    .addOnSuccessListener(a -> {
-                        dbHelper.markAsSynced(record.getId());
-                        uploaded[0]++; done[0]++;
-                        if (done[0] == total) {
-                            loadHistory(searchNameEditText.getText().toString());
-                            if (showFeedback) showSnackbar(uploaded[0] + " records uploaded.");
-                        }
-                    })
-                    .addOnFailureListener(e -> {
-                        done[0]++;
-                        if (done[0] == total) {
-                            loadHistory(searchNameEditText.getText().toString());
-                            if (showFeedback) showSnackbar(uploaded[0] + " records uploaded, some failed.");
-                        }
-                        Log.e("HistorySync", "Failed to sync record: " + docId, e);
-                    });
-        }
-    }
-
-    private boolean checkInternetConnection() {
-        ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-        if (cm != null) {
-            Network net = cm.getActiveNetwork();
-            if (net != null) {
-                NetworkCapabilities caps = cm.getNetworkCapabilities(net);
-                return caps != null && caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED);
-            }
-        }
-        return false;
-    }
-
     private void setupNetworkCallback() {
         ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         if (cm == null) return;
@@ -457,8 +395,8 @@ public class HistoryActivity extends AppCompatActivity {
             @Override public void onAvailable(Network network) {
                 runOnUiThread(() -> {
                     updateButtonStates();
-                    syncOfflineDataToFirestore(false);
-                    fetchAndCacheAdminPassword();
+                    syncManager.syncUnsyncedRecords();
+                    syncManager.fetchAndCacheAdminPassword();
                 });
             }
             @Override public void onLost(Network network) { runOnUiThread(() -> updateButtonStates()); }
@@ -554,7 +492,7 @@ public class HistoryActivity extends AppCompatActivity {
     }
 
     private void updateButtonStates() {
-        boolean hasInternet = checkInternetConnection();
+        boolean hasInternet = syncManager.isOnline();
         syncButton.setEnabled(hasInternet);
     }
 

@@ -3,6 +3,7 @@ package cics.csup.qrattendancecontrol;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
@@ -44,6 +45,7 @@ public class AdminModuleChooserActivity extends AppCompatActivity {
             finish();
         });
 
+        accessCodesButton.setVisibility(View.GONE);
         accessCodesButton.setOnClickListener(v -> {
             startActivity(new Intent(this, AdminAccessCodeActivity.class));
             finish();

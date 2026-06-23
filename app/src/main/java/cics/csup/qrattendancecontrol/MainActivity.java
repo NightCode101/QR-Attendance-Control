@@ -81,6 +81,7 @@ public class MainActivity extends AppCompatActivity {
     private FirebaseFirestore firestore;
     private Spinner sectionSpinner;
     private NetworkChangeReceiver networkChangeReceiver;
+    private SyncManager syncManager;
     private RadioGroup.OnCheckedChangeListener amListener;
     private RadioGroup.OnCheckedChangeListener pmListener;
     private NfcAdapter nfcAdapter;
@@ -130,17 +131,12 @@ public class MainActivity extends AppCompatActivity {
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
         super.onCreate(savedInstanceState);
 
-        accessControlManager = new AccessControlManager(this);
-        if (!accessControlManager.hasCachedAccess()) {
-            redirectToAccessCode();
-            return;
-        }
-
         setContentView(R.layout.activity_main);
 
         FirebaseApp.initializeApp(this);
         firestore = FirebaseFirestore.getInstance();
         db = new AttendanceDBHelper(this);
+        syncManager = new SyncManager(this);
         sharedPreferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
 
         // Debug: Log NFC adapter status and device capabilities
@@ -211,10 +207,10 @@ public class MainActivity extends AppCompatActivity {
         setupSectionSpinner();
         setupRadioGroupLogic();
 
-        networkChangeReceiver = new NetworkChangeReceiver(this::syncUnsyncedRecords);
+        networkChangeReceiver = new NetworkChangeReceiver(syncManager::syncUnsyncedRecords);
         registerReceiver(networkChangeReceiver, new android.content.IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
 
-        syncUnsyncedRecords();
+        syncManager.syncUnsyncedRecords();
         updateDateTimeLabels();
 
         // Restore NFC mode from SharedPreferences
@@ -262,14 +258,6 @@ public class MainActivity extends AppCompatActivity {
 
         if (analyticsManager != null) {
             analyticsManager.logOnForeground();
-        }
-
-        if (accessControlManager != null && isOnline()) {
-            accessControlManager.verifyCurrentAccess((success, message) -> runOnUiThread(() -> {
-                if (!success) {
-                    redirectToAccessCode();
-                }
-            }));
         }
 
         if (mainBannerAdView != null) {
@@ -779,7 +767,7 @@ public class MainActivity extends AppCompatActivity {
         showConfirmationDialog("Success", "Attendance recorded for:\n\n" + "Name: " + studentName + "\nID Number: " + studentID + "\nSlot: " + timeSlotFriendlyName);
 
         // Try to sync to cloud immediately
-        syncUnsyncedRecords();
+        syncManager.syncUnsyncedRecords();
 
         // Scan was successfully consumed.
         clearPendingQrResult();
@@ -899,58 +887,8 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
-    private void syncUnsyncedRecords() {
-        if (!isOnline()) return;
-        List<AttendanceRecord> unsyncedRecords = db.getUnsyncedRecords();
-        if (unsyncedRecords.isEmpty()) return;
-
-        for (AttendanceRecord record : unsyncedRecords) {
-            String docId = record.getIdHash();
-            DocumentReference docRef = firestore.collection("attendance_records").document(docId);
-
-            firestore.runTransaction((Transaction.Function<Void>) transaction -> {
-                        DocumentSnapshot snapshot = transaction.get(docRef);
-                        Map<String, Object> existing = snapshot.getData();
-                        if (existing == null) existing = new HashMap<>();
-
-                        Map<String, Object> uploadData = new HashMap<>();
-                        if (shouldSyncField(existing, "time_in_am", record.getTimeInAM())) uploadData.put("time_in_am", record.getTimeInAM());
-                        if (shouldSyncField(existing, "time_out_am", record.getTimeOutAM())) uploadData.put("time_out_am", record.getTimeOutAM());
-                        if (shouldSyncField(existing, "time_in_pm", record.getTimeInPM())) uploadData.put("time_in_pm", record.getTimeInPM());
-                        if (shouldSyncField(existing, "time_out_pm", record.getTimeOutPM())) uploadData.put("time_out_pm", record.getTimeOutPM());
-
-                        if (!uploadData.isEmpty()) {
-                            uploadData.put("name", record.getName());
-                            uploadData.put("studentID", record.getStudentID());
-                            uploadData.put("date", record.getDate());
-                            uploadData.put("section", record.getSection());
-                            uploadData.put("version", "6.2");
-                            transaction.set(docRef, uploadData, SetOptions.merge());
-                        }
-                        return null;
-                    }).addOnSuccessListener(unused -> db.markAsSynced(record.getId()))
-                    .addOnFailureListener(e -> Log.e("MainActivity", "DEBUG: Failed to sync record " + record.getId(), e));
-        }
-    }
-
-    private boolean shouldSyncField(Map<String, Object> existing, String key, String localValue) {
-        if (localValue == null || localValue.equals("-")) return false;
-        return !existing.containsKey(key) || existing.get(key) == null || Objects.equals(existing.get(key), "-");
-    }
-
     private boolean isOnline() {
-        ConnectivityManager cm = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
-        if (cm == null) return false;
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            Network activeNetwork = cm.getActiveNetwork();
-            if (activeNetwork == null) return false;
-            NetworkCapabilities capabilities = cm.getNetworkCapabilities(activeNetwork);
-            return capabilities != null && capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET);
-        }
-
-        NetworkInfo netInfo = cm.getActiveNetworkInfo();
-        return netInfo != null && netInfo.isConnected();
+        return syncManager.isOnline();
     }
 
     private void hideKeyboard() {
