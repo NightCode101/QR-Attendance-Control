@@ -20,6 +20,7 @@ import androidx.camera.view.PreviewView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.slider.Slider;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -42,7 +43,6 @@ public class CustomScanActivity extends AppCompatActivity {
     private PreviewView previewView;
     private Slider slider_zoom;
     private MaterialButton flashButton;
-    private TextView titleText;
     private TextView scanner_indicator;
 
     private ExecutorService cameraExecutor;
@@ -60,13 +60,23 @@ public class CustomScanActivity extends AppCompatActivity {
         previewView = findViewById(R.id.camera_preview);
         slider_zoom = findViewById(R.id.slider_zoom);
         flashButton = findViewById(R.id.button_toggle_flash);
-        titleText = findViewById(R.id.scanner_title);
+        MaterialToolbar topAppBar = findViewById(R.id.topAppBar);
         scanner_indicator = findViewById(R.id.scanner_indicator);
+
+        if (topAppBar != null) {
+            setSupportActionBar(topAppBar);
+            if (getSupportActionBar() != null) {
+                getSupportActionBar().setDisplayShowTitleEnabled(false);
+            }
+            topAppBar.setNavigationOnClickListener(v -> finish());
+        }
 
         String title = getIntent().getStringExtra("SCAN_TITLE");
         String indicator = getIntent().getStringExtra("SCAN_INDICATOR");
 
-        if (title != null) titleText.setText(title);
+        if (title != null && topAppBar != null) {
+            topAppBar.setTitle(title);
+        }
         if (indicator != null) scanner_indicator.setText(indicator);
 
         cameraExecutor = Executors.newSingleThreadExecutor();

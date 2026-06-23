@@ -15,7 +15,9 @@ import android.widget.Button;
 import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
 
+import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -36,6 +38,7 @@ public class GraphActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_graph);
 
@@ -44,6 +47,16 @@ public class GraphActivity extends AppCompatActivity {
         buttonSecondYear = findViewById(R.id.buttonSecondYear);
         buttonThirdYear = findViewById(R.id.buttonThirdYear);
         buttonFourthYear = findViewById(R.id.buttonFourthYear);
+
+        MaterialToolbar topAppBar = findViewById(R.id.topAppBar);
+        if (topAppBar != null) {
+            setSupportActionBar(topAppBar);
+            if (getSupportActionBar() != null) {
+                getSupportActionBar().setDisplayShowTitleEnabled(false);
+            }
+            topAppBar.setTitle(getString(R.string.menu_graph));
+            topAppBar.setNavigationOnClickListener(v -> finish());
+        }
 
         if (GRAPH_IN_DEVELOPMENT) {
             // Do not initialize Firestore or listeners while feature is paused.

@@ -31,19 +31,19 @@ import android.annotation.SuppressLint;
 
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
-import androidx.core.view.WindowInsetsCompat;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowCompat;
+import androidx.recyclerview.widget.ItemTouchHelper;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import com.google.android.material.appbar.MaterialToolbar;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.SetOptions;
@@ -90,12 +90,10 @@ public class HistoryActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_history);
-        applyWindowInsetPadding();
 
         dbHelper = new AttendanceDBHelper(this);
         firestore = FirebaseFirestore.getInstance();
@@ -109,6 +107,16 @@ public class HistoryActivity extends AppCompatActivity {
         searchNameEditText = findViewById(R.id.searchNameEditText);
         totalTextView = findViewById(R.id.totalTextView);
         swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout);
+
+        MaterialToolbar topAppBar = findViewById(R.id.topAppBar);
+        if (topAppBar != null) {
+            setSupportActionBar(topAppBar);
+            if (getSupportActionBar() != null) {
+                getSupportActionBar().setDisplayShowTitleEnabled(false);
+            }
+            topAppBar.setTitle(getString(R.string.attendance_history));
+            topAppBar.setNavigationOnClickListener(v -> finish());
+        }
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
@@ -543,15 +551,6 @@ public class HistoryActivity extends AppCompatActivity {
                 .setBackgroundTint(getColor(R.color.md_theme_secondary))
                 .setTextColor(getColor(R.color.white))
                 .show();
-    }
-
-    private void applyWindowInsetPadding() {
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content), (v, insets) -> {
-            int top = insets.getInsets(WindowInsetsCompat.Type.systemBars()).top;
-            int bottom = insets.getInsets(WindowInsetsCompat.Type.systemBars()).bottom;
-            v.setPadding(0, top, 0, bottom);
-            return insets;
-        });
     }
 
     private void updateButtonStates() {

@@ -12,8 +12,8 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
-import androidx.core.view.WindowCompat;
 
+import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.snackbar.Snackbar;
 
 public class AccessCodeActivity extends AppCompatActivity {
@@ -27,7 +27,6 @@ public class AccessCodeActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
-        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_access_code);
 
@@ -37,6 +36,16 @@ public class AccessCodeActivity extends AppCompatActivity {
         activateButton = findViewById(R.id.activateButton);
         adminLoginLink = findViewById(R.id.adminLoginLink);
         progressBar = findViewById(R.id.accessCodeProgress);
+
+        MaterialToolbar topAppBar = findViewById(R.id.topAppBar);
+        if (topAppBar != null) {
+            setSupportActionBar(topAppBar);
+            if (getSupportActionBar() != null) {
+                getSupportActionBar().setDisplayShowTitleEnabled(false);
+            }
+            topAppBar.setTitle(getString(R.string.access_code_title));
+        }
+        // No navigation listener needed for entry point
 
         if (accessControlManager.hasCachedAccess()) {
             openMainActivity();

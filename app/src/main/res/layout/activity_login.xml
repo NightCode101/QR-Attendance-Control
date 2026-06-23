@@ -6,21 +6,26 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/md_theme_background"
-    android:padding="32dp">
+    android:fitsSystemWindows="true">
 
-    <!-- Title -->
-    <TextView
-        android:id="@+id/loginTitle"
-        android:layout_width="wrap_content"
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/topAppBar"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:text="@string/admin_login"
-        android:textColor="@color/md_theme_primary"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:background="@color/md_theme_surface"
+        app:contentInsetStartWithNavigation="0dp"
+        android:elevation="2dp"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:title="@string/admin_login"
+        app:titleTextAppearance="@style/TextAppearance.QRAttendanceControl.ToolbarTitle"
+        app:titleTextColor="@color/md_theme_primary"
+        app:titleCentered="true"
+        app:navigationIcon="@drawable/ic_baseline_arrow_back_24"
+        app:navigationIconTint="@color/md_theme_primary"
+        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <!-- Horizontal Guideline -->
     <androidx.constraintlayout.widget.Guideline
@@ -35,10 +40,11 @@
         android:id="@+id/centerForm"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:paddingHorizontal="32dp"
         app:layout_constraintBottom_toTopOf="@id/bannerAdView"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/guideline">
+        app:layout_constraintTop_toBottomOf="@id/topAppBar">
 
         <EditText
             android:id="@+id/emailEditText"
@@ -102,6 +108,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
+        android:layout_marginBottom="32dp"
         app:adSize="BANNER"
         app:adUnitId="@string/admob_banner_main"
         app:layout_constraintBottom_toBottomOf="parent"

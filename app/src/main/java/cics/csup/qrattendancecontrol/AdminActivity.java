@@ -28,6 +28,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
@@ -90,6 +91,16 @@ public class AdminActivity extends AppCompatActivity {
         firestore = FirebaseFirestore.getInstance();
         cacheDB = new AdminCacheDBHelper(this);
         accessControlManager = new AccessControlManager(this);
+
+        MaterialToolbar topAppBar = findViewById(R.id.topAppBar);
+        if (topAppBar != null) {
+            setSupportActionBar(topAppBar);
+            if (getSupportActionBar() != null) {
+                getSupportActionBar().setDisplayShowTitleEnabled(false);
+            }
+            topAppBar.setTitle(getString(R.string.admin_panel_title));
+            topAppBar.setNavigationOnClickListener(v -> finish());
+        }
 
         setupSectionSpinner(); // Now calls the updated method
         setupDateFilter();

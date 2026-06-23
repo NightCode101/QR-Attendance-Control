@@ -14,6 +14,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdLoader;
 import com.google.android.gms.ads.AdRequest;
@@ -41,7 +42,15 @@ public class AboutActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_about);
 
-        TextView pageTitle = findViewById(R.id.aboutTitle);
+        MaterialToolbar topAppBar = findViewById(R.id.topAppBar);
+        if (topAppBar != null) {
+            setSupportActionBar(topAppBar);
+            if (getSupportActionBar() != null) {
+                getSupportActionBar().setDisplayShowTitleEnabled(false);
+            }
+            topAppBar.setNavigationOnClickListener(v -> finish());
+        }
+
         TextView creditsTitle = findViewById(R.id.aboutCreditsTitle);
         TextView versionTitle = findViewById(R.id.aboutVersionTitle);
         TextView lastUpdatedTitle = findViewById(R.id.aboutLastUpdatedTitle);
@@ -62,7 +71,9 @@ public class AboutActivity extends AppCompatActivity {
         versionValue.setText(getAppVersionText());
 
         // Show local fallback first, then replace with Remote Config content when available.
-        pageTitle.setText(getString(R.string.about_title));
+        if (topAppBar != null) {
+            topAppBar.setTitle(getString(R.string.about_title));
+        }
         creditsTitle.setText(getString(R.string.about_credits_title));
         versionTitle.setText(getString(R.string.about_version_title));
         lastUpdatedTitle.setText(getString(R.string.about_last_updated_title));
@@ -78,8 +89,8 @@ public class AboutActivity extends AppCompatActivity {
             }
 
             String remotePageTitle = configHelper.getAboutTitle();
-            if (!remotePageTitle.isEmpty()) {
-                pageTitle.setText(remotePageTitle.replace("\\n", "\n"));
+            if (!remotePageTitle.isEmpty() && topAppBar != null) {
+                topAppBar.setTitle(remotePageTitle.replace("\\n", "\n"));
             }
 
             String remoteCreditsTitle = configHelper.getAboutCreditsTitle();

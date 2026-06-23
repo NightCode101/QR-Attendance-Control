@@ -16,6 +16,7 @@ import androidx.appcompat.app.AppCompatDelegate;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.gms.ads.AdView;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.functions.FirebaseFunctions;
@@ -50,6 +51,15 @@ public class AdminAccessCodeActivity extends AppCompatActivity {
 
         functions = FirebaseFunctions.getInstance();
 
+        MaterialToolbar topAppBar = findViewById(R.id.topAppBar);
+        if (topAppBar != null) {
+            setSupportActionBar(topAppBar);
+            if (getSupportActionBar() != null) {
+                getSupportActionBar().setDisplayShowTitleEnabled(false);
+            }
+            topAppBar.setTitle(getString(R.string.admin_access_codes_title));
+            topAppBar.setNavigationOnClickListener(v -> finish());
+        }
 
         codeInput = findViewById(R.id.codeInput);
         maxDevicesInput = findViewById(R.id.maxDevicesInput);
@@ -292,8 +302,9 @@ public class AdminAccessCodeActivity extends AppCompatActivity {
                         String code = String.valueOf(codeMap.get("code"));
                         String status = String.valueOf(codeMap.get("status"));
                         int maxDevices = intValue(codeMap.get("maxDevices"), 20);
+                        int activeDevices = intValue(codeMap.get("activeDevices"), 0);
                         long expires = longValue(codeMap.get("expiresAtMs"));
-                        items.add(new AccessCodeListItem(code, status, maxDevices, expires));
+                        items.add(new AccessCodeListItem(code, status, maxDevices, activeDevices, expires));
                     }
 
                     listEmptyText.setVisibility(items.isEmpty() ? View.VISIBLE : View.GONE);
@@ -397,7 +408,7 @@ public class AdminAccessCodeActivity extends AppCompatActivity {
         public void onBindViewHolder(CodeViewHolder holder, int position) {
             AccessCodeListItem item = items.get(position);
             holder.codeText.setText(item.code);
-            holder.metaText.setText(getString(R.string.access_codes_list_meta, item.status, item.maxDevices, formatTimestamp(item.expiresAtMs)));
+            holder.metaText.setText(getString(R.string.access_codes_list_meta, item.status, item.activeDevices, item.maxDevices, formatTimestamp(item.expiresAtMs)));
 
             holder.statusButton.setOnClickListener(v -> checkCodeStatus(item.code));
             holder.revokeButton.setOnClickListener(v -> confirmRevokeCode(item.code));
@@ -435,12 +446,14 @@ public class AdminAccessCodeActivity extends AppCompatActivity {
         final String code;
         final String status;
         final int maxDevices;
+        final int activeDevices;
         final long expiresAtMs;
 
-        AccessCodeListItem(String code, String status, int maxDevices, long expiresAtMs) {
+        AccessCodeListItem(String code, String status, int maxDevices, int activeDevices, long expiresAtMs) {
             this.code = code;
             this.status = status;
             this.maxDevices = maxDevices;
+            this.activeDevices = activeDevices;
             this.expiresAtMs = expiresAtMs;
         }
     }

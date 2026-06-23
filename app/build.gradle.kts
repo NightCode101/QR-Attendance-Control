@@ -1,9 +1,12 @@
 import java.time.LocalDate
 import java.time.ZoneOffset
+import com.android.build.gradle.internal.api.BaseVariantOutputImpl
 
 plugins {
     alias(libs.plugins.android.application)
-    id("com.google.gms.google-services")
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.google.services)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 val buildDateUtc = LocalDate.now(ZoneOffset.UTC).toString()
@@ -20,8 +23,9 @@ android {
         applicationId = "cics.csup.qrattendancecontrol"
         minSdk = 23
         targetSdk = 35
-        versionCode = 8
-        versionName = "6.2.1"
+        versionCode = 11
+        versionName = "6.3.0"
+
         buildConfigField("String", "BUILD_DATE", "\"$buildDateUtc\"")
         resValue("string", "build_date", buildDateUtc)
 
@@ -32,8 +36,18 @@ android {
         release {
             isMinifyEnabled = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            ndk {
+                debugSymbolLevel = "full"
+            }
         }
     }
+
+    packaging {
+        jniLibs {
+            useLegacyPackaging = true
+        }
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -43,7 +57,7 @@ android {
         if (buildType.name == "release") {
             outputs.all {
                 @Suppress("DEPRECATION")
-                val outputImpl = this as com.android.build.gradle.internal.api.BaseVariantOutputImpl
+                val outputImpl = this as BaseVariantOutputImpl
                 val resolvedVersion = versionName ?: versionCode.toString()
                 outputImpl.outputFileName = "CICS_QR_Attendance_Control_${resolvedVersion}.apk"
             }
@@ -51,51 +65,47 @@ android {
     }
 }
 
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+    }
+}
+
 dependencies {
+    // Core UI & Architecture
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.constraintlayout)
-
-    // Firebase
-    implementation(platform("com.google.firebase:firebase-bom:33.1.0"))
-    implementation("com.google.firebase:firebase-analytics")
-    implementation("com.google.firebase:firebase-firestore")
-    implementation("com.google.firebase:firebase-auth")
-    implementation("com.google.firebase:firebase-functions")
-
-    // CameraX
-    val cameraxVersion = "1.3.4"
-    implementation("androidx.camera:camera-core:$cameraxVersion")
-    implementation("androidx.camera:camera-camera2:$cameraxVersion")
-    implementation("androidx.camera:camera-lifecycle:$cameraxVersion")
-    implementation("androidx.camera:camera-view:$cameraxVersion")
-
-    // ML Kit
-    implementation("com.google.mlkit:barcode-scanning:17.2.0")
-
-    // Charts
-    implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
-
-    // Swipe Refresh
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
     implementation("androidx.lifecycle:lifecycle-process:2.8.4")
 
-    // Remote Config library
-    implementation("com.google.firebase:firebase-config")
+    // Firebase
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.analytics)
+    implementation(libs.firebase.firestore)
+    implementation(libs.firebase.auth)
+    implementation(libs.firebase.functions)
+    implementation(libs.firebase.config)
+    implementation(libs.firebase.messaging)
+    implementation(libs.firebase.inappmessaging.display)
+    implementation(libs.firebase.dataconnect)
+    implementation(libs.kotlinx.serialization.json)
 
-    // Push Notifications
-    implementation("com.google.firebase:firebase-messaging")
+    // Camera & Scanning
+    implementation(libs.camera.core)
+    implementation(libs.camera.camera2)
+    implementation(libs.camera.lifecycle)
+    implementation(libs.camera.view)
+    implementation(libs.barcode.scanning)
 
-    // Add this for In-App Messaging Display
-    implementation("com.google.firebase:firebase-inappmessaging-display")
+    // External Tools
+    implementation(libs.mp.android.chart)
 
-    // AdMob
-    implementation("com.google.android.gms:play-services-ads:23.1.0")
+    // AdMob & Consent
+    implementation(libs.play.services.ads)
     implementation("com.google.android.ump:user-messaging-platform:2.2.0")
 
-    // Analytics
-    implementation("com.google.firebase:firebase-analytics")
-
+    // Testing
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)

@@ -3,7 +3,6 @@ package cics.csup.qrattendancecontrol;
 import androidx.annotation.OptIn;
 import androidx.camera.core.ExperimentalGetImage;
 import androidx.core.content.ContextCompat;
-import androidx.core.view.WindowInsetsCompat;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -13,6 +12,8 @@ import android.net.NetworkCapabilities;
 import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
@@ -29,8 +30,6 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowCompat;
 import com.google.android.material.appbar.MaterialToolbar;
 
 import android.content.pm.PackageManager;
@@ -129,7 +128,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
-        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
         super.onCreate(savedInstanceState);
 
         accessControlManager = new AccessControlManager(this);
@@ -194,36 +192,24 @@ public class MainActivity extends AppCompatActivity {
         mainBannerAdView = findViewById(R.id.mainBannerAdView);
         Button graphButton = findViewById(R.id.graphButton);
         MaterialToolbar topAppBar = findViewById(R.id.topAppBar);
-        topAppBar.setTitle(R.string.app_title);
+        if (topAppBar != null) {
+            setSupportActionBar(topAppBar);
+            if (getSupportActionBar() != null) {
+                getSupportActionBar().setDisplayShowTitleEnabled(false);
+            }
+            topAppBar.setTitle(getString(R.string.app_title));
+        }
 
         initializeAndLoadBannerAd();
 
         graphButton.setOnClickListener(v -> startActivity(new Intent(MainActivity.this, GraphActivity.class)));
         historyButton.setOnClickListener(v -> startActivity(new Intent(MainActivity.this, HistoryActivity.class)));
-        topAppBar.setOnMenuItemClickListener(item -> {
-            int itemId = item.getItemId();
-            if (itemId == R.id.action_graph) {
-                startActivity(new Intent(MainActivity.this, GraphActivity.class));
-                return true;
-            }
-            if (itemId == R.id.action_admin_panel) {
-                Intent intent = new Intent(MainActivity.this, LoginActivity.class);
-                intent.putExtra("target", "admin");
-                startActivity(intent);
-                return true;
-            }
-            if (itemId == R.id.action_about) {
-                startActivity(new Intent(MainActivity.this, AboutActivity.class));
-                return true;
-            }
-            return false;
-        });
+
         scanButton.setOnClickListener(v -> startQRScanner());
         rfidScanButton.setOnClickListener(v -> startRFIDScanner());
 
         setupSectionSpinner();
         setupRadioGroupLogic();
-        applyWindowInsetPadding();
 
         networkChangeReceiver = new NetworkChangeReceiver(this::syncUnsyncedRecords);
         registerReceiver(networkChangeReceiver, new android.content.IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
@@ -242,6 +228,32 @@ public class MainActivity extends AppCompatActivity {
         // Handle NFC intent if app was launched via NFC
         Log.d("MainActivity", "DEBUG: onCreate - checking initial intent for NFC data");
         handleNfcIntent(getIntent(), "onCreate");
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main_overflow, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int itemId = item.getItemId();
+        if (itemId == R.id.action_graph) {
+            startActivity(new Intent(MainActivity.this, GraphActivity.class));
+            return true;
+        }
+        if (itemId == R.id.action_admin_panel) {
+            Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+            intent.putExtra("target", "admin");
+            startActivity(intent);
+            return true;
+        }
+        if (itemId == R.id.action_about) {
+            startActivity(new Intent(MainActivity.this, AboutActivity.class));
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
@@ -947,14 +959,6 @@ public class MainActivity extends AppCompatActivity {
             InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
             if (imm != null) imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
         }
-    }
-
-    private void applyWindowInsetPadding() {
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content), (view, insets) -> {
-            int bottom = insets.getInsets(WindowInsetsCompat.Type.systemBars()).bottom;
-            view.setPadding(0, 0, 0, bottom);
-            return insets;
-        });
     }
 
     @Override

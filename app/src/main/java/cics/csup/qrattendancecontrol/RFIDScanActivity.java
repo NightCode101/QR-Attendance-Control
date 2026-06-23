@@ -14,6 +14,7 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 
+import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 
 import java.nio.charset.Charset;
@@ -54,6 +55,16 @@ public class RFIDScanActivity extends AppCompatActivity {
         statusText = findViewById(R.id.scanStatusText);
         continueScanButton = findViewById(R.id.continueScanButton);
         MaterialButton doneButton = findViewById(R.id.doneButton);
+
+        MaterialToolbar topAppBar = findViewById(R.id.topAppBar);
+        if (topAppBar != null) {
+            setSupportActionBar(topAppBar);
+            if (getSupportActionBar() != null) {
+                getSupportActionBar().setDisplayShowTitleEnabled(false);
+            }
+            topAppBar.setTitle(getString(R.string.rfid_scanner_title));
+            topAppBar.setNavigationOnClickListener(v -> finish());
+        }
 
         section = getIntent().getStringExtra("SECTION");
         timeSlotField = getIntent().getStringExtra("TIME_SLOT_FIELD");

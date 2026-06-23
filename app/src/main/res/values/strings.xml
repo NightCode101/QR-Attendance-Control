@@ -76,10 +76,10 @@
     <string name="about_version_format">Version %1$s (%2$d)</string>
     <string name="about_version_fallback">Version unavailable</string>
     <string name="about_last_updated_title">Last updated</string>
-    <string name="about_last_updated_content">April 16, 2026</string>
+    <string name="about_last_updated_content">May 14, 2026</string>
     <string name="about_last_updated_fallback_format">Version %1$s - Build date %2$s</string>
     <string name="about_changelog_title">Changelog</string>
-    <string name="about_changelog_content">V6.2\n- Dedicated admin Access Code Management UI\n- Create, revoke, and check code status from admin panel\n- Functions-based access control hardening\n\nV6.0\n- Dedicated RFID/NFC scan screen\n- Improved QR + NFC unified attendance logic\n- Better scanner UI consistency\n\nV5.x\n- History and admin UI improvements\n- Date filtering and sync indicators\n\nV4.x and below\n- Core QR attendance, local storage, and cloud sync foundation</string>
+    <string name="about_changelog_content">V6.3.0</string>
     <string name="privacy_options_title">Privacy Options</string>
     <string name="privacy_options_subtitle">Manage your ad privacy and consent preferences.</string>
     <string name="privacy_options_manage">Manage Privacy Options</string>
@@ -93,6 +93,7 @@
     <string name="access_code_admin_link">Admin Login</string>
     <string name="admin_access_codes_title">Access Code Management</string>
     <string name="admin_access_codes_subtitle">Create or update access codes, then manage them from the list below.</string>
+    <string name="access_code_management_form">Management Form</string>
     <string name="access_code_max_devices">Max Devices</string>
     <string name="access_code_expiration_title">Expiration Date</string>
     <string name="access_code_create_update">Create / Update</string>
@@ -123,7 +124,7 @@
     <string name="no_text">No</string>
     <string name="access_code_status_template">Code: %1$s\nStatus: %2$s\nRevoked: %3$s\nMax Devices: %4$d\nActive Devices: %5$d\nRevoked Devices: %6$d\nExpires: %7$s\nLast Used: %8$s</string>
     <string name="access_codes_list_item">%1$s\nStatus: %2$s\nMax: %3$d\nExpires: %4$s</string>
-    <string name="access_codes_list_meta">Status: %1$s   |   Max: %2$d   |   Expires: %3$s</string>
+    <string name="access_codes_list_meta">Status: %1$s   |   Used: %2$d/%3$d   |   Expires: %4$s</string>
 
     <string name="time_am">AM</string>
     <string name="time_pm">PM</string>
