@@ -7,12 +7,12 @@
 
     <entry>
         <key>sections_list</key>
-        <value>["Select a Section", "1A", "1B", "1C", "1D", "2A", "2B", "2C", "3A", "3B", "3C", "4A", "4B", "4C", "COLSC", "TESTING PURPOSES"]</value>
+        <value>["Select a Section", "1A", "1B", "1C", "1D", "2A", "2B", "2C", "2D", "3A", "3B", "3C", "4A", "4B", "4C", "COLSC", "TESTING PURPOSES"]</value>
     </entry>
 
     <entry>
         <key>about_changelog</key>
-        <value>V6.2\n- Dedicated admin Access Code Management UI\n- Create, revoke, and check code status from admin panel\n- Functions-based access control hardening</value>
+        <value>V7.1.0\n- Added attendance checker for easy attendance checking (Admin Only! Excluding Mayors)</value>
     </entry>
 
     <entry>
@@ -42,7 +42,7 @@
 
     <entry>
         <key>about_last_updated</key>
-        <value></value>
+        <value>July 09, 2026</value>
     </entry>
 
     <entry>

@@ -430,10 +430,10 @@ public class HistoryActivity extends AppCompatActivity {
 
     private void writeCSVToUri(Uri uri) {
         try (OutputStreamWriter writer = new OutputStreamWriter(getContentResolver().openOutputStream(uri))) {
-            writer.write("Name,Date,Section,Time In AM,Time Out AM,Time In PM,Time Out PM\n");
+            writer.write("ID Number,Name,Date,Section,Time In AM,Time Out AM,Time In PM,Time Out PM\n");
             for (AttendanceRecord record : adapter.getCurrentList()) {
-                writer.write(String.format("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n",
-                        record.getName(), record.getDate(), record.getSection(),
+                writer.write(String.format("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n",
+                        record.getStudentID(), record.getName(), record.getDate(), record.getSection(),
                         record.getFieldValue("time_in_am"),
                         record.getFieldValue("time_out_am"),
                         record.getFieldValue("time_in_pm"),
@@ -456,10 +456,10 @@ public class HistoryActivity extends AppCompatActivity {
             File cacheFile = new File(getCacheDir(), fileName);
             try (FileOutputStream fos = new FileOutputStream(cacheFile);
                  OutputStreamWriter writer = new OutputStreamWriter(fos)) {
-                writer.write("Name,Date,Section,Time In AM,Time Out AM,Time In PM,Time Out PM\n");
+                writer.write("ID Number,Name,Date,Section,Time In AM,Time Out AM,Time In PM,Time Out PM\n");
                 for (AttendanceRecord r : adapter.getCurrentList()) {
-                    writer.write(String.format("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n",
-                            r.getName(), r.getDate(), r.getSection(),
+                    writer.write(String.format("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n",
+                            r.getStudentID(), r.getName(), r.getDate(), r.getSection(),
                             r.getFieldValue("time_in_am"),
                             r.getFieldValue("time_out_am"),
                             r.getFieldValue("time_in_pm"),

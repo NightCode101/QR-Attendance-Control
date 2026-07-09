@@ -37,12 +37,17 @@ public class AdminModuleChooserActivity extends AppCompatActivity {
         bannerAdView = findViewById(R.id.bannerAdView);
 
         MaterialButton attendanceButton = findViewById(R.id.openAttendanceButton);
+        MaterialButton absentButton = findViewById(R.id.openAbsentCheckerButton);
         MaterialButton accessCodesButton = findViewById(R.id.openAccessCodesButton);
         MaterialButton logoutButton = findViewById(R.id.logoutButton);
 
         attendanceButton.setOnClickListener(v -> {
             startActivity(new Intent(this, AdminActivity.class));
             finish();
+        });
+
+        absentButton.setOnClickListener(v -> {
+            startActivity(new Intent(this, AbsentCheckerActivity.class));
         });
 
         accessCodesButton.setVisibility(View.GONE);

@@ -10,7 +10,8 @@ service cloud.firestore {
     }
 
     function isAllowedVersion() {
-      return request.resource.data.version in ["6.0", "6.1", "6.2"];
+      // UPDATED: Added "7.0" to allow v7.0.0 clients to sync data
+      return request.resource.data.version in ["6.0", "6.1", "6.2", "7.0", "7.1.0"];
     }
 
     // Attendance data
@@ -23,6 +24,21 @@ service cloud.firestore {
 
       // Delete only admins
       allow delete: if isAdmin();
+    }
+
+    // Student Masterlist for Absent Checker
+    match /student_masterlist/{docId} {
+      // Allow all users to read (for local cache sync)
+      allow read: if true;
+      // Only admins can modify the masterlist
+      allow write: if isAdmin();
+    }
+
+    // NEW: Allow reading the admin configuration document
+    // This fixed the "Connect to internet to fetch password" error
+    match /config/admin {
+      allow read: if true;
+      allow write: if false;
     }
 
     // Access-code system (client should NOT read/write directly)

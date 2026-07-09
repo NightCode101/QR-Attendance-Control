@@ -55,6 +55,9 @@
         <activity android:name=".LoginActivity" />
         <activity android:name=".AdminActivity" />
         <activity android:name=".HistoryActivity" />
+        <activity
+            android:name=".AbsentCheckerActivity"
+            android:theme="@style/Theme.QRAttendanceControl" />
         <activity android:name=".GraphActivity" />
         <activity
             android:name=".RFIDScanActivity"

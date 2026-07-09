@@ -12,9 +12,11 @@ import java.util.List;
 public class AdminCacheDBHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "admin_cache.db";
-    private static final int DATABASE_VERSION = 2;
+    private static final int DATABASE_VERSION = 3; // Incremented version
     private static final String TABLE_NAME = "admin_cache";
+    private static final String TABLE_MASTERLIST = "student_masterlist";
 
+    // Attendance Cache Columns
     private static final String COL_ID = "id";
     private static final String COL_NAME = "name";
     private static final String COL_STUDENT_ID = "studentID";
@@ -25,13 +27,19 @@ public class AdminCacheDBHelper extends SQLiteOpenHelper {
     private static final String COL_TIME_IN_PM = "time_in_pm";
     private static final String COL_TIME_OUT_PM = "time_out_pm";
 
+    // Masterlist Columns
+    private static final String COL_ML_ID = "id";
+    private static final String COL_ML_STUDENT_ID = "studentID";
+    private static final String COL_ML_NAME = "name";
+    private static final String COL_ML_SECTION = "section";
+
     public AdminCacheDBHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        String create = "CREATE TABLE " + TABLE_NAME + " ("
+        String createCache = "CREATE TABLE " + TABLE_NAME + " ("
                 + COL_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
                 + COL_NAME + " TEXT, "
                 + COL_STUDENT_ID + " TEXT, "
@@ -41,7 +49,18 @@ public class AdminCacheDBHelper extends SQLiteOpenHelper {
                 + COL_TIME_OUT_AM + " TEXT, "
                 + COL_TIME_IN_PM + " TEXT, "
                 + COL_TIME_OUT_PM + " TEXT)";
-        db.execSQL(create);
+        db.execSQL(createCache);
+
+        createMasterlistTable(db);
+    }
+
+    private void createMasterlistTable(SQLiteDatabase db) {
+        String createMasterlist = "CREATE TABLE " + TABLE_MASTERLIST + " ("
+                + COL_ML_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
+                + COL_ML_STUDENT_ID + " TEXT UNIQUE, "
+                + COL_ML_NAME + " TEXT, "
+                + COL_ML_SECTION + " TEXT)";
+        db.execSQL(createMasterlist);
     }
 
     @Override
@@ -49,7 +68,12 @@ public class AdminCacheDBHelper extends SQLiteOpenHelper {
         if (oldVersion < 2) {
             try { db.execSQL("ALTER TABLE " + TABLE_NAME + " ADD COLUMN " + COL_STUDENT_ID + " TEXT"); } catch (Exception ignored) {}
         }
+        if (oldVersion < 3) {
+            createMasterlistTable(db);
+        }
     }
+
+    // --- Attendance Cache Methods ---
 
     public void insertOrUpdate(AttendanceRecord record) {
         SQLiteDatabase db = this.getWritableDatabase();
@@ -109,5 +133,63 @@ public class AdminCacheDBHelper extends SQLiteOpenHelper {
         db.delete(TABLE_NAME,
                 COL_STUDENT_ID + "=? AND " + COL_DATE + "=? AND " + COL_SECTION + "=?",
                 new String[]{studentID, date, section});
+    }
+
+    // --- Masterlist Methods ---
+
+    public void upsertStudent(String studentID, String name, String section) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues cv = new ContentValues();
+        cv.put(COL_ML_STUDENT_ID, studentID);
+        cv.put(COL_ML_NAME, name);
+        cv.put(COL_ML_SECTION, section);
+
+        long result = db.insertWithOnConflict(TABLE_MASTERLIST, null, cv, SQLiteDatabase.CONFLICT_REPLACE);
+        if (result == -1) {
+            Log.e("AdminCacheDB", "Failed to upsert student: " + studentID);
+        }
+    }
+
+    public void clearMasterlist() {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.execSQL("DELETE FROM " + TABLE_MASTERLIST);
+    }
+
+    public List<StudentML> getMasterlist(String sectionFilter) {
+        List<StudentML> list = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        
+        String query = "SELECT * FROM " + TABLE_MASTERLIST;
+        String[] args = null;
+        
+        if (sectionFilter != null && !sectionFilter.equalsIgnoreCase("ALL SECTIONS")) {
+            query += " WHERE " + COL_ML_SECTION + " = ?";
+            args = new String[]{sectionFilter};
+        }
+        
+        query += " ORDER BY " + COL_ML_NAME + " ASC";
+        
+        Cursor c = db.rawQuery(query, args);
+        while (c.moveToNext()) {
+            list.add(new StudentML(
+                c.getString(c.getColumnIndexOrThrow(COL_ML_STUDENT_ID)),
+                c.getString(c.getColumnIndexOrThrow(COL_ML_NAME)),
+                c.getString(c.getColumnIndexOrThrow(COL_ML_SECTION))
+            ));
+        }
+        c.close();
+        return list;
+    }
+
+    public static class StudentML {
+        public String studentID;
+        public String name;
+        public String section;
+
+        public StudentML(String studentID, String name, String section) {
+            this.studentID = studentID;
+            this.name = name;
+            this.section = section;
+        }
     }
 }

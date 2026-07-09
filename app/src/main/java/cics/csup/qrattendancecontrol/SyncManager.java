@@ -115,7 +115,7 @@ public class SyncManager {
                     uploadData.put("studentID", record.getStudentID());
                     uploadData.put("date", record.getDate());
                     uploadData.put("section", record.getSection());
-                    uploadData.put("version", "7.0"); // Updated to 7.0 for the new release
+                    uploadData.put("version", "7.1.0"); // Updated to 7.1.0
                     transaction.set(docRef, uploadData, SetOptions.merge());
                 }
                 return null;

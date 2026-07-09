@@ -92,6 +92,9 @@ public class AdminActivity extends AppCompatActivity {
         cacheDB = new AdminCacheDBHelper(this);
         accessControlManager = new AccessControlManager(this);
 
+        // Initialize with current date
+        selectedDateFilter = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
+
         MaterialToolbar topAppBar = findViewById(R.id.topAppBar);
         if (topAppBar != null) {
             setSupportActionBar(topAppBar);
@@ -226,7 +229,7 @@ public class AdminActivity extends AppCompatActivity {
         });
 
         clearDateFilterButton.setOnClickListener(v -> {
-            selectedDateFilter = null;
+            selectedDateFilter = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
             updateDateFilterButtons();
             filterRecords();
         });
@@ -432,11 +435,11 @@ public class AdminActivity extends AppCompatActivity {
 
             File csvFile = new File(getExternalFilesDir(null), fileName);
             FileWriter writer = new FileWriter(csvFile);
-            writer.append("Name,Date,Time In AM,Time Out AM,Time In PM,Time Out PM,Section\n");
+            writer.append("ID Number,Name,Date,Time In AM,Time Out AM,Time In PM,Time Out PM,Section\n");
 
             for (AttendanceRecord r : exportList) {
-                writer.append(String.format("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n",
-                        r.getName(), r.getDate(),
+                writer.append(String.format("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n",
+                        r.getStudentID(), r.getName(), r.getDate(),
                         r.getFieldValue("time_in_am"),
                         r.getFieldValue("time_out_am"),
                         r.getFieldValue("time_in_pm"),

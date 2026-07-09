@@ -42,6 +42,7 @@
     <string name="admin_destination_title">Open Admin Module</string>
     <string name="admin_destination_subtitle">Choose what you want to manage.</string>
     <string name="admin_destination_attendance">Attendance Panel</string>
+    <string name="admin_destination_absent">Absent Checker</string>
     <string name="admin_destination_codes">Access Code Management</string>
     <string name="admin_destination_cancel">Cancel</string>
     <string name="hint_search_name">Search name...</string>
@@ -132,4 +133,19 @@
     <string name="radio_time_out_am">Time Out (AM)</string>
     <string name="radio_time_in_pm">Time In (PM)</string>
     <string name="radio_time_out_pm">Time Out (PM)</string>
+
+    <!-- Absent Checker -->
+    <string name="absent_checker_title">Absent Checker</string>
+    <string name="absent_ml_status_empty">No masterlist uploaded. Please import student list.</string>
+    <string name="absent_label_section">Section:</string>
+    <string name="absent_filter_date">Filter by Date</string>
+    <string name="absent_filter_clear">Clear</string>
+    <string name="absent_button_import">Import List</string>
+    <string name="absent_button_clear">Clear List</string>
+    <string name="absent_label_total">Total Absent: %1$d</string>
+    <string name="absent_button_export">Export Absent List</string>
+    <string name="absent_import_success">Masterlist imported: %1$d students found.</string>
+    <string name="absent_import_error">Import failed. Please check CSV format.</string>
+    <string name="absent_clear_confirm_title">Clear Masterlist</string>
+    <string name="absent_clear_confirm_message">Delete entire student masterlist for the current term? This cannot be undone.</string>
 </resources>

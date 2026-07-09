@@ -19,6 +19,8 @@
     <color name="md_theme_onSurfaceVariant">#5d5d5d</color>
     <color name="md_theme_error">#D32F2F</color>
     <color name="md_theme_onError">#FFFFFF</color>
+    <color name="md_theme_errorContainer">#F9DEDC</color>
+    <color name="md_theme_onErrorContainer">#410E0B</color>
     <color name="md_theme_outline">#cccccc</color>
 
     <color name="green_dark">#2E7D32</color>
