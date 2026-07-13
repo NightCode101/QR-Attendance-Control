@@ -5,7 +5,7 @@
 <h1 align="center">CICS QR Attendance Control</h1>
 
 <p align="center">
-  A smart, offline-first Android application designed to streamline student attendance using QR technology, real-time analytics, and cloud synchronization.
+  A high-performance, offline-first Android application designed to streamline student attendance using QR technology, real-time analytics, and high-resiliency cloud synchronization.
 </p>
 
 <p align="center">
@@ -15,128 +15,91 @@
   <a href="#">
     <img src="https://img.shields.io/badge/platform-Android-green.svg" alt="Platform">
   </a>
-  <a href="mailto:baoitjerialle01@gmail.com">
+  <a href="mailto:jeylodigitals@gmail.com">
     <img src="https://img.shields.io/badge/contact-email-orange.svg" alt="Contact">
   </a>
 </p>
 
 ---
 
-## 🚀 Latest Updates
+## 🚀 Key v8.0.0 Updates
 
-### ✨ V6.1 (Current - Enhanced Reliability & Performance)
-- **🔧 Improved Sync Engine:** More reliable offline-to-cloud synchronization with better error handling.
-- **📊 Enhanced Analytics:** Refined graph calculations for more accurate attendance statistics.
-- **🎯 Camera Controls Polish:** Zoom slider and flash toggle refined for better scanning experience.
-- **🛡️ ProGuard Optimization:** Release builds now fully minified with no reflection issues.
+### 🛡️ Professional ID Validation
+- **Strict Format Enforcement:** All QR and RFID scans now require the `YY-NNNNN` format (e.g., `24-06281`).
+- **Instant Rejection:** Invalid codes are detected instantly in the camera view to prevent incorrect data entry.
 
-### 🆕 V6.0 (NFC Integration)
-- **📶 Dedicated RFID/NFC Screen:** Focused RFID scanner with continuous scanning support.
-- **🪪 Contactless Attendance:** NFC card reading and parsing for tap-based check-ins.
-- **🧠 Safer Attendance Logic:** QR and RFID share normalized ID handling to prevent duplicate records.
-- **🎨 UI Polish:** Refined scanner visuals and improved UX consistency.
+### 📋 Absent Checker Module
+- **Masterlist Comparison:** Import student lists (CSV) to identify missing students for any given date.
+- **Global ID Matching:** Matches students by ID across the entire department—perfect for irregular students attending different sections.
+- **Automated Reporting:** Generate professional absent reports with optimized CSV formatting.
+
+### 🔄 High-Resiliency Sync Engine
+- **Transaction-less Merge:** Robust `SetOptions.merge()` strategy ensures data is saved locally and synced automatically even on slow or unstable networks.
+- **Multi-Device Support:** Different phones can scan different sessions for the same student simultaneously without data loss.
+
+### 🚀 Maintenance & Engagement
+- **App Update Checker:** Built-in GitHub API integration to check for new releases and redirect to download links directly from the menu.
+- **Firebase Messaging:** Integrated In-App Messaging and Cloud Messaging for real-time announcements and admin alerts.
 
 ---
 
 ## ✨ Core Features
 
 ### 📱 For Attendance Taking
-- **Dual Scanning Modes:** QR codes (CameraX + ML Kit) or NFC/RFID cards for flexible check-ins.
-- **Smart Logic:** Automatically detects and prevents duplicate scans (5-second window).
-- **Offline-First:** Records saved to SQLite immediately—never lose data without internet.
-- **Dynamic Sections:** Section lists fetched from Firebase Remote Config, updateable without app restart.
-- **Camera Controls:** Zoom slider and flash toggle for optimal QR scanning in any lighting.
-- **History Log:** View, search, and filter local scan logs with sync status indicators (🟢 Cloud / 🔴 Local).
-- **CSV Export:** Generate and export attendance reports compatible with Excel/Google Sheets.
+- **Dual Scanning Modes:** QR codes (CameraX + ML Kit) or NFC/RFID cards (dedicated high-speed screen).
+- **Instant Offline Storage:** Records save to local SQLite immediately—zero data loss even without internet.
+- **Cloud Synchronization:** Automatic background upload to Firestore with visual status indicators.
 
-### 📊 Analytics & Reporting
-- **Real-Time Graphs:** Visual attendance trends with MPAndroidChart integration.
-- **Attendance Statistics:** Calculate present/absent/late counts by section and time period.
-- **Customizable Reports:** Filter by date, section, or student for targeted analysis.
-
-### 🔐 For Administrators
-- **Secure Login:** Firebase Authentication with UID whitelisting for admin access.
-- **Real-Time Sync:** Automatic upload of local records to Firestore (with visual sync status).
-- **Cloud Dashboard:** View all attendance records synced from all devices in real-time.
-- **Cloud Control:** Manage sections and admins remotely via Firebase Remote Config.
-- **Data Management:** Search, filter, and delete records by date/section/name/ID.
-- **Push Notifications:** FCM integration for attendance sync updates and alerts.
+### 📊 For Administrators
+- **Admin Dashboard:** Real-time view of all records synced globally. Defaults to today's date for efficiency.
+- **Section Filtering:** Intelligent exclusion of administrative/test sections (e.g., "COLSC", "TESTING").
+- **Professional Exports:** Generate attendance and absent reports in CSV format with student IDs as the primary column.
 
 ---
 
 ## 📖 How to Use
 
 ### 🧑‍🏫 For Users (Faculty/Attendance Officers)
-1. **Select Section:** Choose the class section from the dropdown (dynamically loaded from Firebase).
-2. **Select Time Slot:** Choose **Time In (AM/PM)** or **Time Out (AM/PM)**.
-3. **Scan:** Select your preferred method:
-   - **QR Code:** Tap "Scan QR Code" → Point camera at student ID
-     * Format: `ID_NUMBER|STUDENT_NAME` (e.g., `2024001|Juan Dela Cruz`)
-   - **NFC/RFID:** Tap "Scan RFID Card" → Hold card to device for tap-based check-in (New in v6.0+)
-4. **Instant Recording:** Record saves immediately to SQLite, sync happens in background when online.
-5. **View History:** Tap "Attendance History" to see all records with sync status:
-   - 🟢 **Green Dot:** Synced to cloud
-   - 🔴 **Red Dot:** Local only (will sync automatically when internet returns)
-6. **Search & Filter:** Filter history by date, section, name, or student ID.
-7. **Export:** Tap "Export CSV" to generate Excel-compatible reports for archiving or sharing.
+1. **Select Section:** Choose the class section from the dropdown.
+2. **Select Time Slot:** Choose **Time In** or **Time Out** (AM/PM).
+3. **Scan:** Use QR Code or RFID. The record saves **instantly** to the phone.
+4. **Sync:** Data uploads in the background. Check the status indicator (🟢 Synced / 🔴 Pending).
 
 ### 🛡️ For Admins
-1. **Secure Login:** Tap "Admin Panel" → Firebase Auth login → UID validation against admin whitelist.
-2. **Dashboard:** Real-time view of all attendance records synced from all devices globally.
-3. **Advanced Filtering:** Filter records by:
-   - 📅 **Date Range:** Select year and month
-   - 🏫 **Section:** Filter by specific class section
-   - 👤 **Student:** Search by name, ID, or full details
-4. **Data Management:** Long-press any record to delete permanently from cloud database.
-5. **Configuration & Control:**
-   - **Add Sections:** Update `sections_list` in Firebase Remote Config (JSON format)
-   - **Manage Admins:** Add/remove admin UIDs via Firestore admin collection
-   - **Changes Apply:** Restart app to load updated config instantly
-6. **Analytics:** View graphs and statistics for attendance trends and patterns.
+1. **Admin Panel:** View today's attendance logs instantly.
+2. **Absent Checker:** 
+   - Tap **Import List** to upload the term's student masterlist (CSV).
+   - Select a date and section to see exactly who missed class.
+   - Tap **Export** to generate the absent student report.
+3. **Resetting:** Use **Clear List** at the end of the semester to wipe the cloud and local masterlists.
 
 ---
 
 ## 🧰 Tech Stack
 
-| Component | Technology |
-|-----------|-----------|
-| **Language** | Java 17 (Android SDK) |
-| **Min/Target SDK** | Android 23 / 34 |
-| **Scanning** | Android CameraX + Google ML Kit Vision (QR), NFC/RFID (Tags) |
-| **Database** | SQLite 3 (Local, Offline-First) + Firebase Firestore (Cloud Sync) |
-| **Authentication** | Firebase Authentication + Custom UID Whitelisting |
-| **Config Management** | Firebase Remote Config (Dynamic Sections) |
-| **Push Notifications** | Firebase Cloud Messaging (FCM) |
-| **Analytics & Graphs** | MPAndroidChart |
-| **Export & Sharing** | Storage Access Framework (SAF) + FileProvider |
-| **Build System** | Gradle (Kotlin DSL) with ProGuard minification (release builds) |
-
----
-
-## 📦 APK Download
-
-Click below to grab the latest version:
-
-👉 [**Download APK from Releases**](https://github.com/NightCode101/QR_Attendance_Control/releases/latest)
+ Component | Technology |
+-----------|-----------|
+ **Language** | Java 17 (Android SDK) |
+ **Min/Target SDK** | Android 23 / 35 |
+ **Database** | SQLite (Local Cache) + Firebase Firestore (Cloud Sync) |
+ **Scanning** | CameraX + Google ML Kit (QR), Android NFC APIs (RFID) |
+ **Communications** | Firebase In-App Messaging & Cloud Messaging |
+ **Remote Control** | Firebase Remote Config |
+ **Build System** | Gradle (Kotlin DSL) with ProGuard minification |
 
 ---
 
 ## 🖼 Screenshots
 
-| Main Menu                 | QR Interface       |
-|---------------------------|-------------------------|
-| ![Main Menu](UI_Main.jpg) | ![QR Scanner](UI_QR_Scan.jpg) |
-| **NFC/RFID Interface**    | **History Panel**       |
-| ![RFID Scanner](UI_RFID_Scan.jpg) | ![History](UI_History.jpg) |
-| **Admin Panel**           | **Login**       |
-| ![Admin Panel](UI_Admin.jpg) | ![Login](UI_Login.jpg) |
-
+ Main Menu                 | Absent Checker       |
+---------------------------|-------------------------|
+ ![Main Menu](UI_Main.jpg) | ![Absent Checker](UI_Absent.jpg) |
+ **RFID Interface**        | **Admin Dashboard**       |
+ ![RFID Scanner](UI_RFID_Scan.jpg) | ![Admin Panel](UI_Admin.jpg) |
 
 ---
 
 ## 📧 Contact
-
-For bugs, questions, or feedback:
 
 **Jeylo Baoit** 
 📬 [jeylodigitals@gmail.com](mailto:jeylodigitals@gmail.com)  
@@ -144,14 +107,4 @@ For bugs, questions, or feedback:
 
 ---
 
-## 📝 License
-
-This project is intended for academic and educational use.  
-Please ask permission if you plan to use this in commercial or institutional settings.
-
----
-
-## 🙌 Contributions
-
-Pull requests and suggestions are welcome!  
-Help improve the system by opening an issue or forking the project.
+_Developed with ❤️ for academic efficiency and data integrity._

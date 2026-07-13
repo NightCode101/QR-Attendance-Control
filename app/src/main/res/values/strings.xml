@@ -68,19 +68,21 @@
     <string name="continue_scanning_off">Continue Scanning: OFF</string>
     <string name="done">Done</string>
     <string name="scanner_button_flash">Flash</string>
-    <string name="creator_credit">💗 Created by: Jeylo Baoit</string>
-    <string name="about_title">About</string>
-    <string name="about_credits_title">Credits</string>
-    <string name="native_ad_sponsored">Sponsored</string>
-    <string name="about_credits_content">Created and maintained by Jeylo Baoit\n\nCICS QR Attendance Control Team\nThanks to all testers and contributors.</string>
+    <string name="creator_credit">💗 Created by: Jeylo Tangaro Baoit</string>
+    <string name="about_title">About CICS QR</string>
+    <string name="about_developer_title">Developer</string>
+    <string name="about_developer_name_default">Jeylo Tangaro Baoit</string>
+    <string name="about_changelog_title">Changelog</string>
+    <string name="about_changelog_default">v8.0.0</string>
+    <string name="about_testers_title">Testers and Contributors</string>
+    <string name="about_testers_default">CICS QR Attendance Control Team\nThanks to all testers and contributors.</string>
     <string name="about_version_title">App Version</string>
     <string name="about_version_format">Version %1$s (%2$d)</string>
     <string name="about_version_fallback">Version unavailable</string>
     <string name="about_last_updated_title">Last updated</string>
-    <string name="about_last_updated_content">May 14, 2026</string>
+    <string name="about_last_updated_default">June 13, 2026</string>
     <string name="about_last_updated_fallback_format">Version %1$s - Build date %2$s</string>
-    <string name="about_changelog_title">Changelog</string>
-    <string name="about_changelog_content">V6.3.0</string>
+    <string name="native_ad_sponsored">Sponsored</string>
     <string name="privacy_options_title">Privacy Options</string>
     <string name="privacy_options_subtitle">Manage your ad privacy and consent preferences.</string>
     <string name="privacy_options_manage">Manage Privacy Options</string>
@@ -133,6 +135,16 @@
     <string name="radio_time_out_am">Time Out (AM)</string>
     <string name="radio_time_in_pm">Time In (PM)</string>
     <string name="radio_time_out_pm">Time Out (PM)</string>
+
+    <!-- Update Feature -->
+    <string name="menu_check_update">Check for Update</string>
+    <string name="update_checking">Checking for updates...</string>
+    <string name="update_available_title">New Version Available</string>
+    <string name="update_available_msg">A new version (%1$s) is available on GitHub. Would you like to download it now?</string>
+    <string name="update_up_to_date_title">Up to Date</string>
+    <string name="update_up_to_date_msg">You are using the latest version (%1$s).</string>
+    <string name="update_error">Failed to check for updates. Please try again later.</string>
+    <string name="update_button_download">Download</string>
 
     <!-- Absent Checker -->
     <string name="absent_checker_title">Absent Checker</string>

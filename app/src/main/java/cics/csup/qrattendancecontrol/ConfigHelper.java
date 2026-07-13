@@ -63,21 +63,19 @@ public class ConfigHelper {
     }
 
     public String getAboutChangelog() {
-        String value = remoteConfig.getString("about_changelog");
-        return value.trim();
+        return remoteConfig.getString("about_changelog").trim();
     }
 
-    public String getAboutCredits() {
-        String value = remoteConfig.getString("about_credits");
-        return value.trim();
+    public String getAboutTesters() {
+        return remoteConfig.getString("about_testers").trim();
+    }
+
+    public String getAboutDeveloperName() {
+        return remoteConfig.getString("about_developer_name").trim();
     }
 
     public String getAboutTitle() {
         return remoteConfig.getString("about_title").trim();
-    }
-
-    public String getAboutCreditsTitle() {
-        return remoteConfig.getString("about_credits_title").trim();
     }
 
     public String getAboutVersionTitle() {
@@ -94,5 +92,13 @@ public class ConfigHelper {
 
     public String getAboutChangelogTitle() {
         return remoteConfig.getString("about_changelog_title").trim();
+    }
+
+    public String getAboutTestersTitle() {
+        return remoteConfig.getString("about_testers_title").trim();
+    }
+
+    public String getAboutDeveloperTitle() {
+        return remoteConfig.getString("about_developer_title").trim();
     }
 }

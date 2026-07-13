@@ -13,6 +13,11 @@
         app:showAsAction="never" />
 
     <item
+        android:id="@+id/action_check_update"
+        android:title="@string/menu_check_update"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/action_about"
         android:title="@string/about_section"
         app:showAsAction="never" />

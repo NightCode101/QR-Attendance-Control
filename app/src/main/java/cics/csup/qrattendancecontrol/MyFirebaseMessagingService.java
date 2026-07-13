@@ -5,6 +5,7 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Build;
 import android.util.Log;
 import androidx.annotation.NonNull;
@@ -27,18 +28,38 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     public void onMessageReceived(@NonNull RemoteMessage remoteMessage) {
         Log.d(TAG, "From: " + remoteMessage.getFrom());
 
-        // Check if message contains a notification payload.
+        String title = null;
+        String body = null;
+        String updateUrl = null;
+
+        // 1. Handle Notification Payload
         if (remoteMessage.getNotification() != null) {
-            showNotification(
-                    remoteMessage.getNotification().getTitle(),
-                    remoteMessage.getNotification().getBody()
-            );
+            title = remoteMessage.getNotification().getTitle();
+            body = remoteMessage.getNotification().getBody();
+        }
+
+        // 2. Handle Data Payload (Override or supplement)
+        if (!remoteMessage.getData().isEmpty()) {
+            if (title == null) title = remoteMessage.getData().get("title");
+            if (body == null) body = remoteMessage.getData().get("body");
+            updateUrl = remoteMessage.getData().get("update_url");
+        }
+
+        if (title != null && body != null) {
+            showNotification(title, body, updateUrl);
         }
     }
 
-    private void showNotification(String title, String body) {
-        Intent intent = new Intent(this, MainActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+    private void showNotification(String title, String body, String updateUrl) {
+        Intent intent;
+        if (updateUrl != null && !updateUrl.trim().isEmpty()) {
+            // Redirect directly to browser if URL provided
+            intent = new Intent(Intent.ACTION_VIEW, Uri.parse(updateUrl));
+        } else {
+            // Default to opening MainActivity
+            intent = new Intent(this, MainActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        }
 
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent,
                 PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_IMMUTABLE);

@@ -11,23 +11,38 @@
     </entry>
 
     <entry>
-        <key>about_changelog</key>
-        <value>V7.1.0\n- Added attendance checker for easy attendance checking (Admin Only! Excluding Mayors)</value>
-    </entry>
-
-    <entry>
-        <key>about_credits</key>
-        <value>Created and maintained by Jeylo Baoit\n\nCICS QR Attendance Control Team\nThanks to all testers and contributors.</value>
-    </entry>
-
-    <entry>
         <key>about_title</key>
-        <value>About</value>
+        <value>About CICS QR</value>
     </entry>
 
     <entry>
-        <key>about_credits_title</key>
-        <value>Credits</value>
+        <key>about_developer_title</key>
+        <value>Developer</value>
+    </entry>
+
+    <entry>
+        <key>about_developer_name</key>
+        <value>Jeylo Baoit</value>
+    </entry>
+
+    <entry>
+        <key>about_changelog_title</key>
+        <value>Changelog</value>
+    </entry>
+
+    <entry>
+        <key>about_changelog</key>
+        <value>v8.0.0 Fresh Launch\n- Strict ID Validation (YY-NNNNN)\n- New Absent Checker Module\n- High-Resiliency Sync Engine\n- Redesigned About Screen</value>
+    </entry>
+
+    <entry>
+        <key>about_testers_title</key>
+        <value>Testers and Contributors</value>
+    </entry>
+
+    <entry>
+        <key>about_testers</key>
+        <value>CICS QR Attendance Control Team\nThanks to all testers and contributors.</value>
     </entry>
 
     <entry>
@@ -42,11 +57,11 @@
 
     <entry>
         <key>about_last_updated</key>
-        <value>July 09, 2026</value>
+        <value>June 2026</value>
     </entry>
 
     <entry>
-        <key>about_changelog_title</key>
-        <value>Changelog</value>
+        <key>admin_password</key>
+        <value>default_value</value>
     </entry>
 </defaultsMap>

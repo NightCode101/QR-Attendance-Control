@@ -82,53 +82,51 @@ public class SyncManager {
     }
 
     public void syncUnsyncedRecords() {
-        if (!isOnline()) {
-            Log.d(TAG, "Offline, skipping sync.");
-            return;
-        }
-
+        // We no longer exit early if offline. 
+        // Firestore .set() with persistence enabled will cache the update and push when online.
+        
         List<AttendanceRecord> unsyncedRecords = db.getUnsyncedRecords();
         if (unsyncedRecords.isEmpty()) {
             Log.d(TAG, "No unsynced records found.");
             return;
         }
 
-        Log.d(TAG, "Syncing " + unsyncedRecords.size() + " records...");
+        Log.d(TAG, "Syncing " + unsyncedRecords.size() + " records (Robust Mode)...");
 
         for (AttendanceRecord record : unsyncedRecords) {
             String docId = record.getIdHash();
             DocumentReference docRef = firestore.collection("attendance_records").document(docId);
 
-            firestore.runTransaction((Transaction.Function<Void>) transaction -> {
-                DocumentSnapshot snapshot = transaction.get(docRef);
-                Map<String, Object> existing = snapshot.getData();
-                if (existing == null) existing = new HashMap<>();
+            Map<String, Object> uploadData = new HashMap<>();
+            
+            // Only upload fields that have actual data to prevent overwriting cloud data with "-"
+            if (isFilled(record.getTimeInAM())) uploadData.put("time_in_am", record.getTimeInAM());
+            if (isFilled(record.getTimeOutAM())) uploadData.put("time_out_am", record.getTimeOutAM());
+            if (isFilled(record.getTimeInPM())) uploadData.put("time_in_pm", record.getTimeInPM());
+            if (isFilled(record.getTimeOutPM())) uploadData.put("time_out_pm", record.getTimeOutPM());
 
-                Map<String, Object> uploadData = new HashMap<>();
-                if (shouldSyncField(existing, "time_in_am", record.getTimeInAM())) uploadData.put("time_in_am", record.getTimeInAM());
-                if (shouldSyncField(existing, "time_out_am", record.getTimeOutAM())) uploadData.put("time_out_am", record.getTimeOutAM());
-                if (shouldSyncField(existing, "time_in_pm", record.getTimeInPM())) uploadData.put("time_in_pm", record.getTimeInPM());
-                if (shouldSyncField(existing, "time_out_pm", record.getTimeOutPM())) uploadData.put("time_out_pm", record.getTimeOutPM());
-
-                if (!uploadData.isEmpty()) {
-                    uploadData.put("name", record.getName());
-                    uploadData.put("studentID", record.getStudentID());
-                    uploadData.put("date", record.getDate());
-                    uploadData.put("section", record.getSection());
-                    uploadData.put("version", "7.1.0"); // Updated to 7.1.0
-                    transaction.set(docRef, uploadData, SetOptions.merge());
-                }
-                return null;
-            }).addOnSuccessListener(unused -> {
+            if (!uploadData.isEmpty()) {
+                uploadData.put("name", record.getName());
+                uploadData.put("studentID", record.getStudentID());
+                uploadData.put("date", record.getDate());
+                uploadData.put("section", record.getSection());
+                uploadData.put("version", "8.0.0"); // Updated to 8.0.0
+                
+                docRef.set(uploadData, SetOptions.merge())
+                    .addOnSuccessListener(unused -> {
+                        db.markAsSynced(record.getId());
+                        Log.d(TAG, "Record successfully pushed/merged: " + record.getStudentID());
+                    })
+                    .addOnFailureListener(e -> Log.e(TAG, "Failed to initiate sync for " + record.getId(), e));
+            } else {
+                // If for some reason it's "unsynced" but has no data, mark as synced to stop retrying
                 db.markAsSynced(record.getId());
-                Log.d(TAG, "Record synced: " + record.getStudentID());
-            }).addOnFailureListener(e -> Log.e(TAG, "Failed to sync record " + record.getId(), e));
+            }
         }
     }
 
-    private boolean shouldSyncField(Map<String, Object> existing, String key, String localValue) {
-        if (localValue == null || localValue.equals("-")) return false;
-        return !existing.containsKey(key) || existing.get(key) == null || Objects.equals(existing.get(key), "-");
+    private boolean isFilled(String value) {
+        return value != null && !value.equals("-") && !value.trim().isEmpty();
     }
 
     public boolean isOnline() {

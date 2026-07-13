@@ -51,6 +51,7 @@ public class AbsentCheckerActivity extends AppCompatActivity {
     private AdminCacheDBHelper db;
     private FirebaseFirestore firestore;
     private ConfigHelper configHelper;
+    private AnalyticsManager analyticsManager;
 
     private RecyclerView recyclerView;
     private AttendanceAdapter adapter;
@@ -82,6 +83,8 @@ public class AbsentCheckerActivity extends AppCompatActivity {
         db = new AdminCacheDBHelper(this);
         firestore = FirebaseFirestore.getInstance();
         configHelper = new ConfigHelper();
+        analyticsManager = new AnalyticsManager(this);
+        analyticsManager.logAbsentCheckerOpen();
 
         initViews();
         setupToolbar();
@@ -221,8 +224,15 @@ public class AbsentCheckerActivity extends AppCompatActivity {
                 .addOnSuccessListener(snapshots -> {
                     attendanceRecords.clear();
                     for (DocumentSnapshot doc : snapshots) {
+                        String studentID = doc.getString("studentID");
+                        String name = doc.getString("name");
+
+                        // Legacy fallback: Use name as ID if studentID is missing
+                        if (studentID == null && name != null) studentID = name;
+                        else if (name == null && studentID != null) name = studentID;
+
                         attendanceRecords.add(new AttendanceRecord(
-                                0, doc.getString("name"), doc.getString("studentID"),
+                                0, name != null ? name : "-", studentID != null ? studentID : "-",
                                 doc.getString("date"), doc.getString("time_in_am"),
                                 doc.getString("time_out_am"), doc.getString("time_in_pm"),
                                 doc.getString("time_out_pm"), doc.getString("section")
@@ -254,6 +264,11 @@ public class AbsentCheckerActivity extends AppCompatActivity {
         Map<String, AttendanceRecord> attendeeMap = new HashMap<>();
         for (AttendanceRecord r : attendanceRecords) {
             if (r.getDate().equals(selectedDate)) {
+                String sec = r.getSection() != null ? r.getSection().trim().toUpperCase(Locale.ROOT) : "";
+                // Exclude specific sections from validation
+                if (sec.equals("COLSC") || sec.equals("TESTING PURPOSES")) {
+                    continue;
+                }
                 attendeeMap.put(normalizeID(r.getStudentID()), r);
             }
         }
@@ -327,6 +342,9 @@ public class AbsentCheckerActivity extends AppCompatActivity {
 
         batch.commit().addOnSuccessListener(unused -> {
             showSnackbar(getString(R.string.absent_import_success, students.size()));
+            if (analyticsManager != null) {
+                analyticsManager.logMasterlistImport(students.size());
+            }
             syncFromFirestore();
         }).addOnFailureListener(e -> {
             showSnackbar("Upload failed: " + e.getMessage());
@@ -379,6 +397,10 @@ public class AbsentCheckerActivity extends AppCompatActivity {
         String section = sectionSpinner.getSelectedItem().toString();
         String safeSection = section.equals("ALL SECTIONS") ? "ALLSECTION" : section.replaceAll("[^a-zA-Z0-9]", "_");
         String fileName = "Absent_" + safeSection + "_" + selectedDate + ".csv";
+
+        if (analyticsManager != null) {
+            analyticsManager.logExport("absent_checker");
+        }
 
         try {
             File file = new File(getExternalFilesDir(null), fileName);

@@ -180,6 +180,19 @@ public class CustomScanActivity extends AppCompatActivity {
         for (Barcode barcode : barcodes) {
             String rawValue = barcode.getRawValue();
             if (rawValue != null) {
+                // Validation before finishing
+                String[] parts = rawValue.split("\\|", 2);
+                if (parts.length < 2) {
+                    runOnUiThread(() -> Toast.makeText(this, "Invalid Format (ID|Name)", Toast.LENGTH_SHORT).show());
+                    continue;
+                }
+
+                String studentId = parts[0].replaceAll("\\s+", "").toUpperCase();
+                if (!isValidStudentId(studentId)) {
+                    runOnUiThread(() -> Toast.makeText(this, "Invalid ID Format (e.g. 24-06281)", Toast.LENGTH_SHORT).show());
+                    continue;
+                }
+
                 scanHandled = true;
                 if (cameraExecutor != null && !cameraExecutor.isShutdown()) {
                     cameraExecutor.shutdown();
@@ -196,6 +209,10 @@ public class CustomScanActivity extends AppCompatActivity {
                 return;
             }
         }
+    }
+
+    private boolean isValidStudentId(String id) {
+        return id != null && id.matches("^[0-9]{2}-[0-9]{5}$");
     }
 
     private void setupCameraControls() {

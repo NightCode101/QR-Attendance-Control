@@ -26,8 +26,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class AdMobApplication extends Application implements Application.ActivityLifecycleCallbacks, DefaultLifecycleObserver {
 
-    private static final String DEBUG_TEST_APP_OPEN_AD_UNIT_ID = "ca-app-pub-3940256099942544/9257395921";
-
     private final AppOpenAdManager appOpenAdManager = new AppOpenAdManager();
     private WeakReference<Activity> currentActivityRef;
     private ConsentInformation consentInformation;
@@ -199,9 +197,7 @@ public class AdMobApplication extends Application implements Application.Activit
             }
             isLoadingAd = true;
 
-            String adUnitId = BuildConfig.DEBUG
-                    ? DEBUG_TEST_APP_OPEN_AD_UNIT_ID
-                    : getString(R.string.admob_app_open);
+            String adUnitId = getString(R.string.admob_app_open);
 
             AdRequest request = new AdRequest.Builder().build();
             AppOpenAd.load(
@@ -228,7 +224,9 @@ public class AdMobApplication extends Application implements Application.Activit
                 return;
             }
 
-            if (activity instanceof CustomScanActivity || activity instanceof RFIDScanActivity || activity instanceof GraphActivity) {
+            if (activity instanceof CustomScanActivity || activity instanceof RFIDScanActivity 
+                || activity instanceof GraphActivity || activity instanceof AbsentCheckerActivity
+                || activity instanceof AdminActivity || activity instanceof AdminAccessCodeActivity) {
                 return;
             }
 

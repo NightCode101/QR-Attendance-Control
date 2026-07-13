@@ -60,6 +60,7 @@ public class AdminActivity extends AppCompatActivity {
     private MaterialButton clearDateFilterButton;
     private AdminCacheDBHelper cacheDB;
     private ConfigHelper configHelper; // 1. Added ConfigHelper
+    private AnalyticsManager analyticsManager;
     private String selectedDateFilter;
 
     private ListenerRegistration firestoreListener;
@@ -91,6 +92,8 @@ public class AdminActivity extends AppCompatActivity {
         firestore = FirebaseFirestore.getInstance();
         cacheDB = new AdminCacheDBHelper(this);
         accessControlManager = new AccessControlManager(this);
+        analyticsManager = new AnalyticsManager(this);
+        analyticsManager.logAdminOpen();
 
         // Initialize with current date
         selectedDateFilter = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
@@ -432,6 +435,10 @@ public class AdminActivity extends AppCompatActivity {
             String safeSection = section.replaceAll("[^a-zA-Z0-9]", "_");
             String currentDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
             String fileName = "Admin_Export_" + safeSection + "_" + currentDate + ".csv";
+
+            if (analyticsManager != null) {
+                analyticsManager.logExport("attendance_admin");
+            }
 
             File csvFile = new File(getExternalFilesDir(null), fileName);
             FileWriter writer = new FileWriter(csvFile);

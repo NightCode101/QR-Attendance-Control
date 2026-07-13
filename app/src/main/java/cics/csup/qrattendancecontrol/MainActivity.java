@@ -62,6 +62,20 @@ import java.util.Locale;
 import java.util.HashMap;
 import java.util.Map;
 import android.app.PendingIntent;
+import android.app.ProgressDialog;
+import android.net.Uri;
+import org.json.JSONObject;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import com.google.android.gms.ads.AdLoader;
+import com.google.android.gms.ads.nativead.NativeAd;
+import com.google.android.gms.ads.nativead.NativeAdView;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
+import java.net.URL;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -94,6 +108,8 @@ public class MainActivity extends AppCompatActivity {
     private String pendingQrTimeSlotField;
     private String pendingQrTimeSlotName;
     private AdView mainBannerAdView;
+    private FrameLayout nativeAdContainer;
+    private NativeAd nativeAd;
     private AccessControlManager accessControlManager;
 
     private final SimpleDateFormat displayTimeFormat = new SimpleDateFormat("hh:mm a", Locale.getDefault());
@@ -161,7 +177,7 @@ public class MainActivity extends AppCompatActivity {
         Log.d("MainActivity", "DEBUG: Intent action on startup: " + (getIntent() != null ? getIntent().getAction() : "null"));
 
         FirebaseInstallations.getInstance().getId()
-                .addOnSuccessListener(id -> Log.d("InAppMessage", "Instance ID: " + id));
+                .addOnSuccessListener(id -> Log.d("InAppMessage", "Firebase Installation ID (FID) for Testing: " + id));
 
         // 1. Initialize ConfigHelper & AnalyticsManager
         configHelper = new ConfigHelper();
@@ -186,6 +202,7 @@ public class MainActivity extends AppCompatActivity {
         dateText = findViewById(R.id.dateText);
         sectionSpinner = findViewById(R.id.sectionSpinner);
         mainBannerAdView = findViewById(R.id.mainBannerAdView);
+        nativeAdContainer = findViewById(R.id.nativeAdContainer);
         Button graphButton = findViewById(R.id.graphButton);
         MaterialToolbar topAppBar = findViewById(R.id.topAppBar);
         if (topAppBar != null) {
@@ -197,6 +214,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         initializeAndLoadBannerAd();
+        loadNativeAd();
 
         graphButton.setOnClickListener(v -> startActivity(new Intent(MainActivity.this, GraphActivity.class)));
         historyButton.setOnClickListener(v -> startActivity(new Intent(MainActivity.this, HistoryActivity.class)));
@@ -243,6 +261,10 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(MainActivity.this, LoginActivity.class);
             intent.putExtra("target", "admin");
             startActivity(intent);
+            return true;
+        }
+        if (itemId == R.id.action_check_update) {
+            checkForUpdate();
             return true;
         }
         if (itemId == R.id.action_about) {
@@ -690,6 +712,12 @@ public class MainActivity extends AppCompatActivity {
             // --- NEW CORRECT FORMAT ---
             studentID = normalizeStudentId(parts[0]);
             studentName = normalizeStudentName(parts[1]);
+
+            if (!isValidStudentId(studentID)) {
+                showConfirmationDialog("Invalid ID Format", "Student ID: " + studentID + "\n\nFormat must be YY-NNNNN (e.g. 24-06281).");
+                return;
+            }
+
             if (studentID.isEmpty() || studentName.isEmpty()) {
                 showConfirmationDialog("Invalid QR Code", "The code should contain: ID|Name");
                 if (analyticsManager != null) {
@@ -887,6 +915,10 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
+    private boolean isValidStudentId(String id) {
+        return id != null && id.matches("^[0-9]{2}-[0-9]{5}$");
+    }
+
     private boolean isOnline() {
         return syncManager.isOnline();
     }
@@ -904,6 +936,9 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
         if (mainBannerAdView != null) {
             mainBannerAdView.destroy();
+        }
+        if (nativeAd != null) {
+            nativeAd.destroy();
         }
         if (networkChangeReceiver != null) {
             try {
@@ -962,11 +997,148 @@ public class MainActivity extends AppCompatActivity {
         mainBannerAdView.loadAd(adRequest);
     }
 
+    private void loadNativeAd() {
+        if (!UserMessagingPlatform.getConsentInformation(this).canRequestAds()) {
+            return;
+        }
+
+        AdLoader adLoader = new AdLoader.Builder(this, getString(R.string.admob_native_advanced))
+                .forNativeAd(ad -> {
+                    if (isDestroyed()) {
+                        ad.destroy();
+                        return;
+                    }
+                    if (nativeAd != null) {
+                        nativeAd.destroy();
+                    }
+                    nativeAd = ad;
+                    populateNativeAdView(ad);
+                })
+                .build();
+
+        adLoader.loadAd(new AdRequest.Builder().build());
+    }
+
+    private void populateNativeAdView(NativeAd ad) {
+        NativeAdView adView = (NativeAdView) getLayoutInflater().inflate(R.layout.native_ad_unified, null);
+
+        // Map views
+        adView.setHeadlineView(adView.findViewById(R.id.ad_headline));
+        adView.setBodyView(adView.findViewById(R.id.ad_body));
+        adView.setCallToActionView(adView.findViewById(R.id.ad_call_to_action));
+        adView.setIconView(adView.findViewById(R.id.ad_app_icon));
+
+        // Set data
+        ((TextView) adView.getHeadlineView()).setText(ad.getHeadline());
+        if (ad.getBody() == null) {
+            adView.getBodyView().setVisibility(View.INVISIBLE);
+        } else {
+            adView.getBodyView().setVisibility(View.VISIBLE);
+            ((TextView) adView.getBodyView()).setText(ad.getBody());
+        }
+
+        if (ad.getCallToAction() == null) {
+            adView.getCallToActionView().setVisibility(View.INVISIBLE);
+        } else {
+            adView.getCallToActionView().setVisibility(View.VISIBLE);
+            ((Button) adView.getCallToActionView()).setText(ad.getCallToAction());
+        }
+
+        if (ad.getIcon() == null) {
+            adView.getIconView().setVisibility(View.GONE);
+        } else {
+            ((ImageView) adView.getIconView()).setImageDrawable(ad.getIcon().getDrawable());
+            adView.getIconView().setVisibility(View.VISIBLE);
+        }
+
+        adView.setNativeAd(ad);
+
+        nativeAdContainer.removeAllViews();
+        nativeAdContainer.addView(adView);
+        nativeAdContainer.setVisibility(View.VISIBLE);
+    }
+
     private void redirectToAccessCode() {
         Intent intent = new Intent(MainActivity.this, AccessCodeActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();
+    }
+
+    private void checkForUpdate() {
+        ProgressDialog progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage(getString(R.string.update_checking));
+        progressDialog.setCancelable(false);
+        progressDialog.show();
+
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        executor.execute(() -> {
+            try {
+                URL url = new URL("https://api.github.com/repos/NightCode101/QR-Attendance-Control/releases/latest");
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                connection.setRequestMethod("GET");
+                connection.setRequestProperty("Accept", "application/vnd.github.v3+json");
+
+                if (connection.getResponseCode() == 200) {
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                    StringBuilder response = new StringBuilder();
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        response.append(line);
+                    }
+                    reader.close();
+
+                    JSONObject json = new JSONObject(response.toString());
+                    String latestTag = json.getString("tag_name");
+
+                    runOnUiThread(() -> {
+                        progressDialog.dismiss();
+                        compareVersionsAndShow(latestTag);
+                    });
+                } else {
+                    runOnUiThread(() -> {
+                        progressDialog.dismiss();
+                        showSnackbar(getString(R.string.update_error));
+                    });
+                }
+                connection.disconnect();
+            } catch (Exception e) {
+                Log.e("UpdateCheck", "Error: " + e.getMessage());
+                runOnUiThread(() -> {
+                    progressDialog.dismiss();
+                    showSnackbar(getString(R.string.update_error));
+                });
+            }
+        });
+    }
+
+    private void compareVersionsAndShow(String latestVersion) {
+        String currentVersion = BuildConfig.VERSION_NAME;
+        
+        // Simple string comparison for now, assuming semantic versioning like "v7.2.1"
+        // Removing "v" prefix if present
+        String cleanLatest = latestVersion.toLowerCase().startsWith("v") ? latestVersion.substring(1) : latestVersion;
+        String cleanCurrent = currentVersion.toLowerCase().startsWith("v") ? currentVersion.substring(1) : currentVersion;
+
+        if (!cleanLatest.equals(cleanCurrent)) {
+            new AlertDialog.Builder(this)
+                    .setTitle(R.string.update_available_title)
+                    .setMessage(getString(R.string.update_available_msg, latestVersion))
+                    .setPositiveButton(R.string.update_button_download, (dialog, which) -> openUpdateLink())
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .show();
+        } else {
+            new AlertDialog.Builder(this)
+                    .setTitle(R.string.update_up_to_date_title)
+                    .setMessage(getString(R.string.update_up_to_date_msg, currentVersion))
+                    .setPositiveButton(android.R.string.ok, null)
+                    .show();
+        }
+    }
+
+    private void openUpdateLink() {
+        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/NightCode101/QR-Attendance-Control/releases/latest"));
+        startActivity(intent);
     }
 }
 

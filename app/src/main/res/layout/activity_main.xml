@@ -151,6 +151,15 @@
                 app:cornerRadius="8dp"
                 android:enabled="false"
                 android:visibility="gone" />
+
+            <!-- Native Ad Placeholder -->
+            <FrameLayout
+                android:id="@+id/nativeAdContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:minHeight="80dp"
+                android:visibility="gone" />
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 

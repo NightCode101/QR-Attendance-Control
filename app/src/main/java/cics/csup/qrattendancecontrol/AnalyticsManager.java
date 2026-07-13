@@ -30,4 +30,24 @@ public class AnalyticsManager {
     public void logOnForeground() {
         firebaseAnalytics.logEvent("on_foreground", null);
     }
+
+    public void logAdminOpen() {
+        firebaseAnalytics.logEvent("admin_panel_open", null);
+    }
+
+    public void logAbsentCheckerOpen() {
+        firebaseAnalytics.logEvent("absent_checker_open", null);
+    }
+
+    public void logExport(String type) {
+        Bundle b = new Bundle();
+        b.putString("export_type", type);
+        firebaseAnalytics.logEvent("export_records", b);
+    }
+
+    public void logMasterlistImport(int count) {
+        Bundle b = new Bundle();
+        b.putInt("student_count", count);
+        firebaseAnalytics.logEvent("masterlist_import", b);
+    }
 }

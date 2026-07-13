@@ -4,6 +4,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
@@ -37,6 +38,10 @@ public class AboutActivity extends AppCompatActivity {
     private Button privacyButton;
     private ConsentInformation consentInformation;
 
+    // UI Components
+    private TextView devName, changelogValue, testersValue, versionValue, lastUpdatedValue;
+    private ImageView devPhoto;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -51,85 +56,67 @@ public class AboutActivity extends AppCompatActivity {
             topAppBar.setNavigationOnClickListener(v -> finish());
         }
 
-        TextView creditsTitle = findViewById(R.id.aboutCreditsTitle);
-        TextView versionTitle = findViewById(R.id.aboutVersionTitle);
-        TextView lastUpdatedTitle = findViewById(R.id.aboutLastUpdatedTitle);
-        TextView changelogTitle = findViewById(R.id.aboutChangelogTitle);
-        TextView versionValue = findViewById(R.id.aboutVersionValue);
-        TextView lastUpdatedValue = findViewById(R.id.aboutLastUpdatedValue);
-        TextView creditsValue = findViewById(R.id.aboutCreditsValue);
-        TextView changelogValue = findViewById(R.id.aboutChangelogValue);
+        // Bind Views
+        devName = findViewById(R.id.devName);
+        devPhoto = findViewById(R.id.devPhoto);
+        changelogValue = findViewById(R.id.changelogValue);
+        testersValue = findViewById(R.id.testersValue);
+        versionValue = findViewById(R.id.versionValue);
+        lastUpdatedValue = findViewById(R.id.lastUpdatedValue);
+        
         nativeAdContainer = findViewById(R.id.aboutNativeAdContainer);
         privacySection = findViewById(R.id.aboutPrivacySection);
         privacyButton = findViewById(R.id.aboutPrivacyButton);
+        
         consentInformation = UserMessagingPlatform.getConsentInformation(this);
 
         privacyButton.setOnClickListener(v -> showPrivacyOptionsFormIfAvailable());
         updatePrivacyOptionsVisibility();
 
-
+        // Initial Data Binding (Local Fallbacks)
+        if (topAppBar != null) topAppBar.setTitle(getString(R.string.about_title));
+        devName.setText(getString(R.string.about_developer_name_default));
+        changelogValue.setText(getString(R.string.about_changelog_default));
+        testersValue.setText(getString(R.string.about_testers_default));
         versionValue.setText(getAppVersionText());
-
-        // Show local fallback first, then replace with Remote Config content when available.
-        if (topAppBar != null) {
-            topAppBar.setTitle(getString(R.string.about_title));
-        }
-        creditsTitle.setText(getString(R.string.about_credits_title));
-        versionTitle.setText(getString(R.string.about_version_title));
-        lastUpdatedTitle.setText(getString(R.string.about_last_updated_title));
-        changelogTitle.setText(getString(R.string.about_changelog_title));
-        creditsValue.setText(getString(R.string.about_credits_content));
         lastUpdatedValue.setText(getBuildLastUpdatedFallback());
-        changelogValue.setText(getString(R.string.about_changelog_content));
+
+        // Load Developer Photo (Local Asset)
+        devPhoto.setImageResource(R.drawable.dev);
 
         configHelper = new ConfigHelper();
         configHelper.fetchAndActivate(this, () -> {
-            if (isFinishing()) {
-                return;
-            }
+            if (isFinishing()) return;
 
+            // Page Title
             String remotePageTitle = configHelper.getAboutTitle();
             if (!remotePageTitle.isEmpty() && topAppBar != null) {
-                topAppBar.setTitle(remotePageTitle.replace("\\n", "\n"));
+                topAppBar.setTitle(sanitize(remotePageTitle));
             }
 
-            String remoteCreditsTitle = configHelper.getAboutCreditsTitle();
-            if (!remoteCreditsTitle.isEmpty()) {
-                creditsTitle.setText(remoteCreditsTitle.replace("\\n", "\n"));
-            }
+            // Developer Name
+            String remoteDevName = configHelper.getAboutDeveloperName();
+            if (!remoteDevName.isEmpty()) devName.setText(sanitize(remoteDevName));
 
-            String remoteVersionTitle = configHelper.getAboutVersionTitle();
-            if (!remoteVersionTitle.isEmpty()) {
-                versionTitle.setText(remoteVersionTitle.replace("\\n", "\n"));
-            }
-
-            String remoteLastUpdatedTitle = configHelper.getAboutLastUpdatedTitle();
-            if (!remoteLastUpdatedTitle.isEmpty()) {
-                lastUpdatedTitle.setText(remoteLastUpdatedTitle.replace("\\n", "\n"));
-            }
-
-            String remoteChangelogTitle = configHelper.getAboutChangelogTitle();
-            if (!remoteChangelogTitle.isEmpty()) {
-                changelogTitle.setText(remoteChangelogTitle.replace("\\n", "\n"));
-            }
-
-            String remoteCredits = configHelper.getAboutCredits();
-            if (!remoteCredits.isEmpty()) {
-                creditsValue.setText(remoteCredits.replace("\\n", "\n"));
-            }
-
-            String remoteLastUpdated = configHelper.getAboutLastUpdated();
-            if (!remoteLastUpdated.isEmpty()) {
-                lastUpdatedValue.setText(remoteLastUpdated.replace("\\n", "\n"));
-            }
-
+            // Changelog
             String remoteChangelog = configHelper.getAboutChangelog();
-            if (!remoteChangelog.isEmpty()) {
-                changelogValue.setText(remoteChangelog.replace("\\n", "\n"));
-            }
+            if (!remoteChangelog.isEmpty()) changelogValue.setText(sanitize(remoteChangelog));
+
+            // Testers
+            String remoteTesters = configHelper.getAboutTesters();
+            if (!remoteTesters.isEmpty()) testersValue.setText(sanitize(remoteTesters));
+
+            // Last Updated
+            String remoteLastUpdated = configHelper.getAboutLastUpdated();
+            if (!remoteLastUpdated.isEmpty()) lastUpdatedValue.setText(sanitize(remoteLastUpdated));
         });
 
         loadNativeAdvancedAd();
+    }
+
+    private String sanitize(String raw) {
+        if (raw == null) return "";
+        return raw.replace("\\n", "\n").replace("\\r", "\r");
     }
 
     @Override
@@ -172,10 +159,7 @@ public class AboutActivity extends AppCompatActivity {
     }
 
     private void loadNativeAdvancedAd() {
-        if (nativeAdContainer == null) {
-            return;
-        }
-
+        if (nativeAdContainer == null) return;
         if (!UserMessagingPlatform.getConsentInformation(this).canRequestAds()) {
             nativeAdContainer.setVisibility(View.GONE);
             return;
@@ -191,10 +175,7 @@ public class AboutActivity extends AppCompatActivity {
                         ad.destroy();
                         return;
                     }
-
-                    if (nativeAd != null) {
-                        nativeAd.destroy();
-                    }
+                    if (nativeAd != null) nativeAd.destroy();
                     nativeAd = ad;
 
                     NativeAdView adView = (NativeAdView) LayoutInflater.from(this)
@@ -232,34 +213,25 @@ public class AboutActivity extends AppCompatActivity {
         adView.setMediaView(mediaView);
 
         headlineView.setText(ad.getHeadline());
-
         if (ad.getBody() != null) {
             bodyView.setVisibility(View.VISIBLE);
             bodyView.setText(ad.getBody());
-        } else {
-            bodyView.setVisibility(View.GONE);
-        }
+        } else bodyView.setVisibility(View.GONE);
 
         if (ad.getAdvertiser() != null) {
             advertiserView.setVisibility(View.VISIBLE);
             advertiserView.setText(ad.getAdvertiser());
-        } else {
-            advertiserView.setVisibility(View.GONE);
-        }
+        } else advertiserView.setVisibility(View.GONE);
 
         if (ad.getIcon() != null) {
             iconView.setVisibility(View.VISIBLE);
             iconView.setImageDrawable(ad.getIcon().getDrawable());
-        } else {
-            iconView.setVisibility(View.GONE);
-        }
+        } else iconView.setVisibility(View.GONE);
 
         if (ad.getCallToAction() != null) {
             ctaView.setVisibility(View.VISIBLE);
             ctaView.setText(ad.getCallToAction());
-        } else {
-            ctaView.setVisibility(View.GONE);
-        }
+        } else ctaView.setVisibility(View.GONE);
 
         adView.setNativeAd(ad);
     }
@@ -286,11 +258,7 @@ public class AboutActivity extends AppCompatActivity {
             versionName = "-";
         }
 
-        return getString(
-                R.string.about_last_updated_fallback_format,
-                versionName,
-                getString(R.string.build_date)
-        );
+        return getString(R.string.about_last_updated_fallback_format, versionName, getString(R.string.build_date));
     }
 
     @Override
