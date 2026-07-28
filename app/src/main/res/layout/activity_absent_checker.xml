@@ -120,39 +120,22 @@
                 android:text="@string/absent_filter_clear"
                 app:cornerRadius="8dp" />
         </LinearLayout>
-    </LinearLayout>
 
-    <!-- Masterlist Controls -->
-    <LinearLayout
-        android:id="@+id/mlControlsLayout"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginTop="8dp"
-        app:layout_constraintTop_toBottomOf="@id/filterLayout"
-        app:layout_constraintStart_toStartOf="@id/guideline_start"
-        app:layout_constraintEnd_toEndOf="@id/guideline_end">
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/importMLButton"
-            android:layout_width="0dp"
+        <!-- Name/ID Search -->
+        <EditText
+            android:id="@+id/absentSearchEditText"
+            android:layout_width="match_parent"
             android:layout_height="48dp"
-            android:layout_weight="1"
-            android:text="@string/absent_button_import"
-            app:icon="@drawable/ic_baseline_file_upload_24"
-            app:cornerRadius="8dp" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/clearMLButton"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-            android:layout_width="0dp"
-            android:layout_height="48dp"
-            android:layout_weight="1"
-            android:layout_marginStart="8dp"
-            android:text="@string/absent_button_clear"
-            android:textColor="@color/md_theme_error"
-            app:strokeColor="@color/md_theme_error"
-            app:cornerRadius="8dp" />
+            android:layout_marginTop="8dp"
+            android:background="@drawable/shape_rounded_edittext_bg"
+            android:hint="@string/hint_search_name"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:gravity="center_vertical"
+            android:inputType="textPersonName"
+            android:autofillHints="name"
+            android:textColor="@color/md_theme_onSurface"
+            android:textColorHint="@color/hint_text_color" />
     </LinearLayout>
 
     <TextView
@@ -164,7 +147,7 @@
         android:textColor="@color/md_theme_primary"
         android:gravity="center"
         android:padding="8dp"
-        app:layout_constraintTop_toBottomOf="@id/mlControlsLayout"
+        app:layout_constraintTop_toBottomOf="@id/filterLayout"
         app:layout_constraintStart_toStartOf="@id/guideline_start"
         app:layout_constraintEnd_toEndOf="@id/guideline_end" />
 
@@ -175,7 +158,7 @@
         android:layout_marginTop="8dp"
         android:layout_marginBottom="8dp"
         app:layout_constraintTop_toBottomOf="@id/absentCountText"
-        app:layout_constraintBottom_toTopOf="@id/exportButton"
+        app:layout_constraintBottom_toTopOf="@id/bottomControlsLayout"
         app:layout_constraintStart_toStartOf="@id/guideline_start"
         app:layout_constraintEnd_toEndOf="@id/guideline_end">
 
@@ -188,19 +171,64 @@
             android:padding="8dp"
             android:paddingBottom="12dp"
             android:scrollbars="vertical"
-            tools:listitem="@layout/item_attendance" />
+            tools:listitem="@layout/item_absent_student" />
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/exportButton"
+    <!-- Bottom Controls -->
+    <LinearLayout
+        android:id="@+id/bottomControlsLayout"
         android:layout_width="0dp"
-        android:layout_height="52dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
         android:layout_marginBottom="16dp"
-        android:text="@string/absent_button_export"
-        app:icon="@drawable/ic_baseline_file_download_24"
-        app:cornerRadius="10dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="@id/guideline_start"
-        app:layout_constraintEnd_toEndOf="@id/guideline_end" />
+        app:layout_constraintEnd_toEndOf="@id/guideline_end">
+
+        <!-- Session Selector (Moved here) -->
+        <RadioGroup
+            android:id="@+id/sessionRadioGroup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:orientation="horizontal"
+            android:gravity="center">
+
+            <RadioButton
+                android:id="@+id/radioAM"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/time_am"
+                android:textSize="12sp"
+                android:buttonTint="@color/md_theme_primary"/>
+
+            <RadioButton
+                android:id="@+id/radioPM"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:text="@string/time_pm"
+                android:textSize="12sp"
+                android:buttonTint="@color/md_theme_primary"/>
+
+            <RadioButton
+                android:id="@+id/radioBoth"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:checked="true"
+                android:text="Both"
+                android:textSize="12sp"
+                android:buttonTint="@color/md_theme_primary"/>
+        </RadioGroup>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/exportButton"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:text="@string/absent_button_export"
+            app:icon="@drawable/ic_baseline_file_download_24"
+            app:cornerRadius="10dp" />
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

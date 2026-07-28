@@ -10,8 +10,8 @@ service cloud.firestore {
     }
 
     function isAllowedVersion() {
-      // Authorized versions for v8.0.0 Fresh Launch
-      return request.resource.data.version in ["7.0", "7.1.0", "7.1.1", "7.2.0", "7.2.1", "8.0.0"];
+      // Authorized versions for current platform
+      return request.resource.data.version in ["8.0.0", "8.1.0"];
     }
 
     // Attendance data

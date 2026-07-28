@@ -73,14 +73,14 @@
     <string name="about_developer_title">Developer</string>
     <string name="about_developer_name_default">Jeylo Tangaro Baoit</string>
     <string name="about_changelog_title">Changelog</string>
-    <string name="about_changelog_default">v8.0.0</string>
+    <string name="about_changelog_default">v8.1.0\n- Quota Saver Technology\n- Smart History Filter (Today)\n- Alphabetical Sorting\n- ID Visibility in List\n- Expandable About Sections</string>
     <string name="about_testers_title">Testers and Contributors</string>
     <string name="about_testers_default">CICS QR Attendance Control Team\nThanks to all testers and contributors.</string>
     <string name="about_version_title">App Version</string>
     <string name="about_version_format">Version %1$s (%2$d)</string>
     <string name="about_version_fallback">Version unavailable</string>
     <string name="about_last_updated_title">Last updated</string>
-    <string name="about_last_updated_default">June 13, 2026</string>
+    <string name="about_last_updated_default">June 28, 2026</string>
     <string name="about_last_updated_fallback_format">Version %1$s - Build date %2$s</string>
     <string name="native_ad_sponsored">Sponsored</string>
     <string name="privacy_options_title">Privacy Options</string>

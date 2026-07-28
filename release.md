@@ -1,6 +1,25 @@
-# 🎓 CICS QR Attendance Control v8.0.0
+# 🎓 CICS QR Attendance Control v8.1.0
 
-The **"Validation & Reliability"** Fresh Launch introduces strict Student ID verification, a powerful absence detection module, and a modernized synchronization engine for professional-grade attendance management.
+The **"Optimized Management & UI"** Update introduces automated history management, a cleaner expandable "About" experience, and drastic performance improvements for the Absent Checker.
+
+---
+
+## 🆕 What's New in v8.1.0
+
+### 📋 Smart Attendance History
+- **Today's Focus**: Automatically filters the history list to show only today's records by default.
+- **Alphabetical Sorting**: All attendance logs are now sorted alphabetically by student name.
+- **ID Visibility**: Student ID numbers are now displayed prominently above names in each card.
+
+### 📋 Absent Checker Optimization
+- **⚡ Quota Saver Technology**: Attendance records are cached locally for the selected date. Switching sections costs **Zero additional Firestore reads**.
+- **🔍 Instant Search**: Real-time name and ID search bar within the Absent Checker.
+- **🕒 Session Filtering**: View absentees for **AM**, **PM**, or **Both**.
+- **✏️ Masterlist Editing**: Long-press to edit student Name, ID, or Section directly from the list.
+
+### ✨ Redesigned About Screen
+- **Expandable Sections**: Changelog and Testers sections are now partially collapsed (3 lines) to keep the screen neat. Tap to expand for full details.
+- **Visual Improvements**: Integrated a new circular photo style for the developer profile.
 
 ---
 
@@ -8,28 +27,18 @@ The **"Validation & Reliability"** Fresh Launch introduces strict Student ID ver
 
 ### 🛡️ Strict Student ID Validation
 - **Format Enforcement**: All scans now require the `YY-NNNNN` format (e.g., `24-06281`).
-- **Instant Feedback**: The scanner provides immediate alerts for malformed codes, allowing for instant retries.
-
-### 📋 Absent Checker Module
-- **Global Matching**: Automatically identifies missing students by checking StudentIDs across all sections for the day—perfect for irregular students.
-- **Masterlist Management**: Simple CSV import/export with overwrite protection and semestral wipe support.
+- **Instant Feedback**: The scanner provides immediate alerts for malformed codes.
 
 ### 🔄 Robust Synchronization
-- **High-Resiliency Engine**: Replaced transactions with a "Fire and Forget" merge strategy to fix syncing on slow or intermittent networks.
-- **Smart Merging**: Multi-device support ensures scans from different phones never overwrite each other.
-
-### 🚀 Smart Tools & UI
-- **Auto-Updates**: Check for new app versions directly from the menu and download from GitHub with one tap.
-- **Admin Optimization**: Dashboard now defaults to Today's records for instant monitoring.
-- **Interactive Messaging**: Real-time admin alerts via Firebase In-App Messaging.
+- **High-Resiliency Engine**: "Fire and Forget" merge strategy ensures every scan is safely delivered.
 
 ---
 
 ## ✨ Core Features
-- 📷 QR & RFID/NFC Scanning (Strictly Validated)
-- 📁 Offline-First Local Storage (Zero Data Loss)
-- ☁️ Robust Cloud Sync
-- 📤 Professional CSV Reporting (ID-First Format)
+- 📷 QR & RFID/NFC Scanning (Strict Validation)
+- 📋 Optimized Absent Checker & Masterlist Tools
+- 📁 Zero-Data-Loss Local Storage
+- ☁️ High-Resiliency Firestore Sync
 
 ---
 

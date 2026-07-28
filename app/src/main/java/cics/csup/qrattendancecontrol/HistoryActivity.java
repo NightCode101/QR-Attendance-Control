@@ -57,6 +57,11 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.Locale;
+
 public class HistoryActivity extends AppCompatActivity {
 
     private AttendanceDBHelper dbHelper;
@@ -117,6 +122,7 @@ public class HistoryActivity extends AppCompatActivity {
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
+        selectedDateFilter = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
 
         adapter = new HistoryAdapter(new ArrayList<>());
         recyclerView.setAdapter(adapter);
@@ -233,17 +239,24 @@ public class HistoryActivity extends AppCompatActivity {
 
     private void loadHistory(String nameFilter) {
         List<AttendanceRecord> records = dbHelper.getVisibleAttendanceRecords(nameFilter);
-        if (selectedDateFilter != null && !selectedDateFilter.trim().isEmpty()) {
-            List<AttendanceRecord> filteredByDate = new ArrayList<>();
-            for (AttendanceRecord record : records) {
-                if (selectedDateFilter.equals(record.getDate())) {
-                    filteredByDate.add(record);
-                }
+        List<AttendanceRecord> filtered = new ArrayList<>();
+
+        for (AttendanceRecord record : records) {
+            if (selectedDateFilter == null || selectedDateFilter.trim().isEmpty() || record.getDate().equals(selectedDateFilter)) {
+                filtered.add(record);
             }
-            records = filteredByDate;
         }
-        adapter.setList(records);
-        totalTextView.setText("Total: " + records.size());
+
+        // Sort Alphabetically by Name
+        Collections.sort(filtered, (o1, o2) -> {
+            if (o1.getName() == null && o2.getName() == null) return 0;
+            if (o1.getName() == null) return 1;
+            if (o2.getName() == null) return -1;
+            return o1.getName().compareToIgnoreCase(o2.getName());
+        });
+
+        adapter.setList(filtered);
+        totalTextView.setText("Total: " + filtered.size());
         updateButtonStates();
     }
 
@@ -515,6 +528,7 @@ public class HistoryActivity extends AppCompatActivity {
             h.textSyncStatus.setText(r.isSynced() ? R.string.history_sync_synced : R.string.history_sync_pending);
             h.textSyncStatus.setTextColor(getColor(r.isSynced() ? R.color.green_dark : R.color.md_theme_onSurfaceVariant));
 
+            h.textStudentID.setText(r.getStudentID());
             h.textName.setText(r.getName());
             h.textDate.setText("Date: " + r.getDate());
             h.textSection.setText(r.getSection());
@@ -568,6 +582,7 @@ public class HistoryActivity extends AppCompatActivity {
         class Holder extends RecyclerView.ViewHolder {
             View syncDot;
             TextView textSyncStatus;
+            TextView textStudentID;
             TextView textName;
             TextView textSection;
             TextView textDate;
@@ -580,6 +595,7 @@ public class HistoryActivity extends AppCompatActivity {
                 super(item);
                 syncDot = item.findViewById(R.id.syncDot);
                 textSyncStatus = item.findViewById(R.id.textSyncStatus);
+                textStudentID = item.findViewById(R.id.textStudentID);
                 textName = item.findViewById(R.id.textName);
                 textSection = item.findViewById(R.id.textSection);
                 textDate = item.findViewById(R.id.textDate);

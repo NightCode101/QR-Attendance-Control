@@ -32,7 +32,7 @@
 
     <entry>
         <key>about_changelog</key>
-        <value>v8.0.0 Fresh Launch\n- Strict ID Validation (YY-NNNNN)\n- New Absent Checker Module\n- High-Resiliency Sync Engine\n- Redesigned About Screen</value>
+        <value>v8.1.0\n- Quota Saver Technology\n- Smart History Filter (Today)\n- Alphabetical Sorting\n- ID Visibility in List\n- Expandable About Sections</value>
     </entry>
 
     <entry>

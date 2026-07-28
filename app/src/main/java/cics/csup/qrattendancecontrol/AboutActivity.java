@@ -40,7 +40,8 @@ public class AboutActivity extends AppCompatActivity {
 
     // UI Components
     private TextView devName, changelogValue, testersValue, versionValue, lastUpdatedValue;
-    private ImageView devPhoto;
+    private ImageView devPhoto, changelogArrow, testersArrow;
+    private View changelogCard, testersCard;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,6 +64,11 @@ public class AboutActivity extends AppCompatActivity {
         testersValue = findViewById(R.id.testersValue);
         versionValue = findViewById(R.id.versionValue);
         lastUpdatedValue = findViewById(R.id.lastUpdatedValue);
+
+        changelogCard = findViewById(R.id.changelogCard);
+        testersCard = findViewById(R.id.testersCard);
+        changelogArrow = findViewById(R.id.changelogArrow);
+        testersArrow = findViewById(R.id.testersArrow);
         
         nativeAdContainer = findViewById(R.id.aboutNativeAdContainer);
         privacySection = findViewById(R.id.aboutPrivacySection);
@@ -72,6 +78,9 @@ public class AboutActivity extends AppCompatActivity {
 
         privacyButton.setOnClickListener(v -> showPrivacyOptionsFormIfAvailable());
         updatePrivacyOptionsVisibility();
+
+        setupExpandableSection(changelogCard, changelogValue, changelogArrow);
+        setupExpandableSection(testersCard, testersValue, testersArrow);
 
         // Initial Data Binding (Local Fallbacks)
         if (topAppBar != null) topAppBar.setTitle(getString(R.string.about_title));
@@ -112,6 +121,19 @@ public class AboutActivity extends AppCompatActivity {
         });
 
         loadNativeAdvancedAd();
+    }
+
+    private void setupExpandableSection(View card, TextView value, ImageView arrow) {
+        card.setOnClickListener(v -> {
+            boolean isExpanded = value.getMaxLines() == Integer.MAX_VALUE;
+            if (isExpanded) {
+                value.setMaxLines(3);
+                arrow.setImageResource(R.drawable.ic_expand_more);
+            } else {
+                value.setMaxLines(Integer.MAX_VALUE);
+                arrow.setImageResource(R.drawable.ic_expand_less);
+            }
+        });
     }
 
     private String sanitize(String raw) {

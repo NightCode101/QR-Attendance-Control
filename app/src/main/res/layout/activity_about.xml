@@ -94,21 +94,38 @@
 
             <!-- 2. Changelog Card -->
             <LinearLayout
+                android:id="@+id/changelogCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
                 android:background="@color/md_theme_surface"
                 android:elevation="2dp"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:padding="16dp"
+                android:clickable="true"
+                android:focusable="true">
 
-                <TextView
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/about_changelog_title"
-                    android:textColor="@color/md_theme_primary"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/about_changelog_title"
+                        android:textColor="@color/md_theme_primary"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+                    <ImageView
+                        android:id="@+id/changelogArrow"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_expand_more"
+                        app:tint="@color/md_theme_primary"
+                        android:contentDescription="Expand" />
+                </LinearLayout>
 
                 <TextView
                     android:id="@+id/changelogValue"
@@ -118,26 +135,45 @@
                     android:text="@string/about_changelog_default"
                     android:textColor="@color/md_theme_onSurface"
                     android:textSize="14sp"
-                    android:lineSpacingExtra="2dp" />
+                    android:lineSpacingExtra="2dp"
+                    android:maxLines="3"
+                    android:ellipsize="end" />
             </LinearLayout>
 
             <!-- 3. Testers Card -->
             <LinearLayout
+                android:id="@+id/testersCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
                 android:background="@color/md_theme_surface"
                 android:elevation="2dp"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:padding="16dp"
+                android:clickable="true"
+                android:focusable="true">
 
-                <TextView
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/about_testers_title"
-                    android:textColor="@color/md_theme_primary"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/about_testers_title"
+                        android:textColor="@color/md_theme_primary"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+                    <ImageView
+                        android:id="@+id/testersArrow"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/ic_expand_more"
+                        app:tint="@color/md_theme_primary"
+                        android:contentDescription="Expand" />
+                </LinearLayout>
 
                 <TextView
                     android:id="@+id/testersValue"
@@ -147,7 +183,9 @@
                     android:text="@string/about_testers_default"
                     android:textColor="@color/md_theme_onSurface"
                     android:textSize="14sp"
-                    android:lineSpacingExtra="2dp" />
+                    android:lineSpacingExtra="2dp"
+                    android:maxLines="3"
+                    android:ellipsize="end" />
             </LinearLayout>
 
             <!-- Privacy (Hidden by default) -->

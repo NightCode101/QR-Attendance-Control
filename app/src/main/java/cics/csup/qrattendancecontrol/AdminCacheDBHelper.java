@@ -135,6 +135,27 @@ public class AdminCacheDBHelper extends SQLiteOpenHelper {
                 new String[]{studentID, date, section});
     }
 
+    public List<AttendanceRecord> getAttendanceByDate(String date) {
+        List<AttendanceRecord> list = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor c = db.query(TABLE_NAME, null, COL_DATE + "=?", new String[]{date}, null, null, null);
+        while (c.moveToNext()) {
+            list.add(new AttendanceRecord(
+                    c.getInt(c.getColumnIndexOrThrow(COL_ID)),
+                    c.getString(c.getColumnIndexOrThrow(COL_NAME)),
+                    c.getString(c.getColumnIndexOrThrow(COL_STUDENT_ID)),
+                    c.getString(c.getColumnIndexOrThrow(COL_DATE)),
+                    c.getString(c.getColumnIndexOrThrow(COL_TIME_IN_AM)),
+                    c.getString(c.getColumnIndexOrThrow(COL_TIME_OUT_AM)),
+                    c.getString(c.getColumnIndexOrThrow(COL_TIME_IN_PM)),
+                    c.getString(c.getColumnIndexOrThrow(COL_TIME_OUT_PM)),
+                    c.getString(c.getColumnIndexOrThrow(COL_SECTION))
+            ));
+        }
+        c.close();
+        return list;
+    }
+
     // --- Masterlist Methods ---
 
     public void upsertStudent(String studentID, String name, String section) {
@@ -148,6 +169,20 @@ public class AdminCacheDBHelper extends SQLiteOpenHelper {
         if (result == -1) {
             Log.e("AdminCacheDB", "Failed to upsert student: " + studentID);
         }
+    }
+
+    public void updateStudentML(String oldId, String newId, String name, String section) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues cv = new ContentValues();
+        cv.put(COL_ML_STUDENT_ID, newId);
+        cv.put(COL_ML_NAME, name);
+        cv.put(COL_ML_SECTION, section);
+        db.update(TABLE_MASTERLIST, cv, COL_ML_STUDENT_ID + "=?", new String[]{oldId});
+    }
+
+    public void deleteStudentML(String studentID) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete(TABLE_MASTERLIST, COL_ML_STUDENT_ID + "=?", new String[]{studentID});
     }
 
     public void clearMasterlist() {

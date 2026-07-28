@@ -15,6 +15,18 @@
     android:padding="12dp">
 
     <TextView
+        android:id="@+id/textStudentID"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:textColor="@color/md_theme_primary"
+        android:textSize="11sp"
+        android:alpha="0.8"
+        app:layout_constraintEnd_toStartOf="@+id/textSection"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="24-06281" />
+
+    <TextView
         android:id="@+id/textName"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -24,7 +36,7 @@
         android:textStyle="bold"
         app:layout_constraintEnd_toStartOf="@+id/textSection"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/textStudentID"
         tools:text="Student Name" />
 
     <View
