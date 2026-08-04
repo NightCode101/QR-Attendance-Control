@@ -10,52 +10,51 @@ service cloud.firestore {
     }
 
     function isAllowedVersion() {
-      // Authorized versions for current platform
-      return request.resource.data.version in ["8.0.0", "8.1.0"];
+      // Strictly authorized for v8.x ecosystem
+      return request.resource.data.version in ["8.0.0", "8.1.0", "8.1.1", "8.2.0"];
     }
 
     // Attendance data
     match /attendance_records/{docId} {
-      // Keep public read if history visible without auth
       allow read: if true;
 
-      // Sync model (unauth write allowed) but version-gated
-      allow create, update: if isAllowedVersion();
+      allow create: if isAllowedVersion();
 
-      // Delete only admins
+      // PROTECTED UPDATE: Only allow setting a time field if it's currently empty or "-"
+      // This prevents Phone B from overwriting Phone A's data without costing extra Reads.
+      allow update: if isAllowedVersion() && (
+        (!('time_in_am' in request.resource.data) || resource.data.time_in_am == "-" || !('time_in_am' in resource.data)) &&
+        (!('time_out_am' in request.resource.data) || resource.data.time_out_am == "-" || !('time_out_am' in resource.data)) &&
+        (!('time_in_pm' in request.resource.data) || resource.data.time_in_pm == "-" || !('time_in_pm' in resource.data)) &&
+        (!('time_out_pm' in request.resource.data) || resource.data.time_out_pm == "-" || !('time_out_pm' in resource.data))
+      );
+
       allow delete: if isAdmin();
     }
 
     // Student Masterlist for Absent Checker
     match /student_masterlist/{docId} {
-      // Allow all users to read (for local cache sync)
       allow read: if true;
-      // Only admins can modify the masterlist
       allow write: if isAdmin();
     }
 
-    // Allow reading the admin configuration document
     match /config/admin {
       allow read: if true;
       allow write: if false;
     }
 
-    // Access-code system (client should NOT read/write directly)
     match /access_codes/{code} {
       allow read, write: if false;
-
       match /activations/{deviceId} {
         allow read, write: if false;
       }
     }
 
-    // Optional audit logs
     match /access_events/{eventId} {
       allow read: if isAdmin();
       allow write: if false;
     }
 
-    // Default deny everything else
     match /{document=**} {
       allow read, write: if false;
     }

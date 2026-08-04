@@ -214,7 +214,7 @@ public class RFIDScanActivity extends AppCompatActivity {
         String studentName = normalizeStudentName(parts[1]);
 
         if (!isValidStudentId(studentID)) {
-            updateInlineStatus("Invalid ID Format: " + studentID + " (Use: 24-06281)", false);
+            updateInlineStatus("Invalid ID Format: " + studentID + " (Use: 24-06281 or 123-4567)", false);
             return;
         }
 
@@ -283,7 +283,7 @@ public class RFIDScanActivity extends AppCompatActivity {
     }
 
     private boolean isValidStudentId(String id) {
-        return id != null && id.matches("^[0-9]{2}-[0-9]{5}$");
+        return id != null && id.matches("^[0-9]{2,3}-[0-9]{4,5}$");
     }
 
     private void updateContinueScanButton() {

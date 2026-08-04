@@ -411,6 +411,7 @@ public class AbsentCheckerActivity extends AppCompatActivity {
     }
 
     private void updateStudentInFirestore(String oldId, String newId, String name, String section) {
+        if (isFinishing() || isDestroyed()) return;
         swipeRefreshLayout.setRefreshing(true);
         Map<String, Object> data = new HashMap<>();
         data.put("studentID", newId);
@@ -424,11 +425,13 @@ public class AbsentCheckerActivity extends AppCompatActivity {
         batch.set(firestore.collection("student_masterlist").document(normalizeID(newId)), data);
 
         batch.commit().addOnSuccessListener(unused -> {
+            if (isFinishing() || isDestroyed()) return;
             db.updateStudentML(oldId, newId, name, section);
             showSnackbar("Student updated.");
             calculateAbsents();
             swipeRefreshLayout.setRefreshing(false);
         }).addOnFailureListener(e -> {
+            if (isFinishing() || isDestroyed()) return;
             showSnackbar("Update failed.");
             swipeRefreshLayout.setRefreshing(false);
         });
@@ -444,15 +447,18 @@ public class AbsentCheckerActivity extends AppCompatActivity {
     }
 
     private void deleteStudentFromFirestore(String studentId) {
+        if (isFinishing() || isDestroyed()) return;
         swipeRefreshLayout.setRefreshing(true);
         firestore.collection("student_masterlist").document(normalizeID(studentId)).delete()
                 .addOnSuccessListener(unused -> {
+                    if (isFinishing() || isDestroyed()) return;
                     db.deleteStudentML(studentId);
                     showSnackbar("Student removed from masterlist.");
                     calculateAbsents();
                     swipeRefreshLayout.setRefreshing(false);
                 })
                 .addOnFailureListener(e -> {
+                    if (isFinishing() || isDestroyed()) return;
                     showSnackbar("Deletion failed.");
                     swipeRefreshLayout.setRefreshing(false);
                 });

@@ -22,37 +22,37 @@
 
 ---
 
-## 🚀 Key v8.1.0 Updates
+## 🚀 Key v8.2.0 Updates
 
-### 📋 Smart Attendance Management
-- **Automated Filtering:** Attendance history defaults to **Today's** records, sorted alphabetically for efficiency.
-- **Quota Saver Technology:** Local caching ensures switching sections or searching in Absent Checker costs **Zero additional Firestore reads**.
-- **Enhanced Visibility:** Student IDs are now displayed prominently above names in the attendance list.
+### 🛡️ Data Integrity & Protection
+- **First-Scan Protection:** Implemented a server-side lock that prevents any scan (Time In/Out) from being overwritten once it has been recorded in the cloud.
+- **Zero-Read Enforcement:** Protection is handled via Firestore Security Rules, ensuring data integrity without consuming daily Read quota.
 
-### 🛡️ Professional ID Validation
-- **Strict Format Enforcement:** All QR and RFID scans require the `YY-NNNNN` format (e.g., `24-06281`).
-- **Instant Rejection:** Invalid codes are detected instantly in the camera view.
+### 📋 Stability & Optimization
+- **Crash Prevention:** Resolved memory-related crashes in the Absent Checker module when performing long-press edits or deletions.
+- **Flexible ID Validation:** Robust support for all student ID generations including `XX-XXXXX`, `XX-XXXX`, `XXX-XXXXX`, and `XXX-XXXX` formats.
+- **Quota Saver Technology:** Advanced local caching ensures switching sections or searching costs **Zero additional Firestore reads**.
 
 ### 🔄 High-Resiliency Sync Engine
-- **Robust Merging:** `SetOptions.merge()` strategy ensures data is saved locally and synced automatically even on slow or unstable networks.
+- **Conflict-Free Merging:** Multi-device support with protected updates ensures that scans from different phones for the same session are preserved correctly.
 
-### ✨ Redesigned About Screen
-- **Expandable Sections:** Changelog and Testers are now expandable for a cleaner user experience.
-- **Visual Identity:** Professional developer profile with a modern layout.
+### ✨ Professional UI
+- **Automated Filtering:** Attendance history defaults to **Today's** records, sorted alphabetically for efficiency.
+- **Expandable Content:** "About" screen content is now expandable for a cleaner user experience.
 
 ---
 
 ## ✨ Core Features
 
 ### 📱 For Attendance Taking
-- **Dual Scanning Modes:** QR codes or NFC/RFID cards.
-- **Instant Offline Storage:** Records save to local SQLite immediately.
-- **Cloud Synchronization:** Automatic background upload to Firestore with status indicators.
+- **Dual Scanning Modes:** QR codes (CameraX + ML Kit) or NFC/RFID cards.
+- **Instant Offline Storage:** Records save to local SQLite immediately—zero data loss.
+- **Cloud Synchronization:** Automatic background upload to Firestore with visual status indicators.
 
 ### 📊 For Administrators
-- **Absent Checker:** Masterlist comparison (CSV import) with global ID matching and session filtering.
+- **Absent Checker:** Masterlist comparison with global ID matching and session filtering.
 - **Professional Exports:** Generate attendance and absent reports in CSV format.
-- **App Update Checker:** Built-in GitHub integration to check for new releases.
+- **App Update Checker:** Built-in GitHub integration for seamless maintenance.
 
 ---
 

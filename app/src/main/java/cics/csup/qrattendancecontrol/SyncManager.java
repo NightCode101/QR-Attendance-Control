@@ -110,7 +110,7 @@ public class SyncManager {
                 uploadData.put("studentID", record.getStudentID());
                 uploadData.put("date", record.getDate());
                 uploadData.put("section", record.getSection());
-                uploadData.put("version", "8.1.0"); // Updated to 8.1.0
+                uploadData.put("version", "8.2.0"); // Updated to 8.2.0
                 
                 docRef.set(uploadData, SetOptions.merge())
                     .addOnSuccessListener(unused -> {

@@ -189,7 +189,7 @@ public class CustomScanActivity extends AppCompatActivity {
 
                 String studentId = parts[0].replaceAll("\\s+", "").toUpperCase();
                 if (!isValidStudentId(studentId)) {
-                    runOnUiThread(() -> Toast.makeText(this, "Invalid ID Format (e.g. 24-06281)", Toast.LENGTH_SHORT).show());
+                    runOnUiThread(() -> Toast.makeText(this, "Invalid ID Format (e.g. 24-06281 or 123-4567)", Toast.LENGTH_SHORT).show());
                     continue;
                 }
 
@@ -212,7 +212,7 @@ public class CustomScanActivity extends AppCompatActivity {
     }
 
     private boolean isValidStudentId(String id) {
-        return id != null && id.matches("^[0-9]{2}-[0-9]{5}$");
+        return id != null && id.matches("^[0-9]{2,3}-[0-9]{4,5}$");
     }
 
     private void setupCameraControls() {

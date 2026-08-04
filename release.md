@@ -1,44 +1,37 @@
-# 🎓 CICS QR Attendance Control v8.1.0
+# 🎓 CICS QR Attendance Control v8.2.0
 
-The **"Optimized Management & UI"** Update introduces automated history management, a cleaner expandable "About" experience, and drastic performance improvements for the Absent Checker.
+The **"Stability & Data Integrity"** Update introduces server-side protection for attendance records and critical crash fixes for administrative tools.
+
+---
+
+## 🆕 What's New in v8.2.0
+
+### 🛡️ First-Scan Protection (Zero-Read Cost)
+- **Data Preservation**: Implemented server-side security rules that prevent existing attendance data from being overwritten. The **first scan** to reach the cloud is now permanent and cannot be replaced by subsequent scans for the same time slot.
+- **Quota Optimized**: This protection is enforced at the database level, meaning it consumes **Zero extra Firestore Reads**, staying well within your daily quota limits.
+
+### 📋 Absent Checker Stability
+- **Crash Fixes**: Optimized the long-press editing flow in the Absent Checker. Fixed issues where the app would close unexpectedly when updating or deleting student information.
+- **Improved Responsiveness**: Enhanced state management to ensure smooth transitions during cloud synchronization.
+
+### 🛡️ Flexible Student ID Validation (v8.1.1)
+- **Broader Support**: Officially supports `XX-XXXXX`, `XX-XXXX`, `XXX-XXXXX`, and `XXX-XXXX` formats for all scanning generations.
 
 ---
 
 ## 🆕 What's New in v8.1.0
 
-### 📋 Smart Attendance History
-- **Today's Focus**: Automatically filters the history list to show only today's records by default.
-- **Alphabetical Sorting**: All attendance logs are now sorted alphabetically by student name.
-- **ID Visibility**: Student ID numbers are now displayed prominently above names in each card.
-
 ### 📋 Absent Checker Optimization
-- **⚡ Quota Saver Technology**: Attendance records are cached locally for the selected date. Switching sections costs **Zero additional Firestore reads**.
+- **⚡ Quota Saver Technology**: Attendance records are cached locally for the selected date. Switching sections or searching costs **Zero additional Firestore reads**.
 - **🔍 Instant Search**: Real-time name and ID search bar within the Absent Checker.
-- **🕒 Session Filtering**: View absentees for **AM**, **PM**, or **Both**.
-- **✏️ Masterlist Editing**: Long-press to edit student Name, ID, or Section directly from the list.
-
-### ✨ Redesigned About Screen
-- **Expandable Sections**: Changelog and Testers sections are now partially collapsed (3 lines) to keep the screen neat. Tap to expand for full details.
-- **Visual Improvements**: Integrated a new circular photo style for the developer profile.
-
----
-
-## 🆕 What's New in v8.0.0
-
-### 🛡️ Strict Student ID Validation
-- **Format Enforcement**: All scans now require the `YY-NNNNN` format (e.g., `24-06281`).
-- **Instant Feedback**: The scanner provides immediate alerts for malformed codes.
-
-### 🔄 Robust Synchronization
-- **High-Resiliency Engine**: "Fire and Forget" merge strategy ensures every scan is safely delivered.
 
 ---
 
 ## ✨ Core Features
-- 📷 QR & RFID/NFC Scanning (Strict Validation)
+- 📷 QR & RFID/NFC Scanning (Flexible Validation)
 - 📋 Optimized Absent Checker & Masterlist Tools
 - 📁 Zero-Data-Loss Local Storage
-- ☁️ High-Resiliency Firestore Sync
+- ☁️ High-Resiliency Firestore Sync (Protected Updates)
 
 ---
 

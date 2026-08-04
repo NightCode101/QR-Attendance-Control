@@ -714,7 +714,7 @@ public class MainActivity extends AppCompatActivity {
             studentName = normalizeStudentName(parts[1]);
 
             if (!isValidStudentId(studentID)) {
-                showConfirmationDialog("Invalid ID Format", "Student ID: " + studentID + "\n\nFormat must be YY-NNNNN (e.g. 24-06281).");
+                showConfirmationDialog("Invalid ID Format", "Student ID: " + studentID + "\n\nSupported Formats:\n- XX-XXXXX\n- XX-XXXX\n- XXX-XXXXX\n- XXX-XXXX");
                 return;
             }
 
@@ -916,7 +916,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private boolean isValidStudentId(String id) {
-        return id != null && id.matches("^[0-9]{2}-[0-9]{5}$");
+        return id != null && id.matches("^[0-9]{2,3}-[0-9]{4,5}$");
     }
 
     private boolean isOnline() {
